@@ -1,0 +1,323 @@
+\chapter{Counting animals in Camera-Trap Images}\label{cap:counting}
+
+In this chapter, we present a proposed baseline for the problem of counting the
+number of animals of each species in a sequence of camera trap images. Our
+solution, based on a heuristic strategy using bounding boxes combined with a
+species classifier, was ranked first in the iWildCam 2021 challenge.
+
+\section{Introduction}
+
+Camera traps have been widely used for monitoring wildlife, collecting large
+amounts of images worldwide. In the last decade, the computer vision community
+has investigated diverse approaches to improve automated information extraction
+from this data, speeding up data preprocessing and reducing or eliminating the
+need for manual data processing. This allows ecologists to focus on their
+ecological research questions instead of spending time on manually reviewing
+images. One of the widely studied data extraction tasks is species
+identification, which provides information that enables scientists to model
+species richness, species occurrence, and species distribution
+\citep{beery2021iwildcam}. However, solely identifying the species is not
+sufficient for other types of modeling, such as those focused on species
+abundance or density. For these cases, counting the number of individuals
+captured across image sequences is required.
+
+Counting the number of individuals in a single image can be done using an
+object detector such as MegaDetector. However, most camera trap projects
+capture more than one picture per capture event in the hope of obtaining a good
+shot to identify the photographed animal. In this context, simply counting the
+number of bounding boxes in the pictures can overestimate or underestimate the
+actual number of individuals in the sequence of images, as the same
+individual may appear in multiple images, or different individuals may appear
+in different images of the same sequence. Thus, it is necessary to use more
+sophisticated approaches, such as tracking individuals or re-identifying them
+across the images in the sequence. However, this is a challenging task due to
+temporal discontinuities, as the images are usually taken at intervals of one
+second or more, and most public camera trap datasets do not include count
+labels, making supervised training unfeasible.
+
+Some efforts have been made to address the counting of individuals in camera
+trap images. For instance, \citet{norouzzadeh2018automatically} used a
+classifier to count the number of animals in the Snapshot Serengeti dataset. In
+a subsequent work, \citet{norouzzadeh2021deep} employed a pre-trained object
+detection model to count animals at the image level based on the number of
+bounding boxes. An effort to incentivize the development of methods for
+counting the number of individuals across camera trap image sequences was the
+launch of iWildCam 2021 Challenge \citep{beery2021iwildcam}, which provided a
+dataset for this problem. Its purpose was to encourage the development of
+approaches for the scenarios where count labels are not available, promoting
+alternative methods for counting animals, with labels being collected only for
+the test set.
+
+Given this context, in this chapter, we present a robust baseline for counting
+animals in sequences of camera trap images. Our approach combines a heuristic
+based on bounding box counts with an ensemble of species classifiers.
+
+\section{Materials and Methods}
+
+In this section we present the iWildCam 2021, the dataset used to validate our
+counting aproach, and detail our heuristic strategy that serve as a strong
+baseline for the problem of counting animals in camera trap images.
+
+\subsection{{iWildcam} 2021 dataset}
+
+The iWildCam 2021 dataset comprises three components: camera trap
+images from the WCS dataset, citizen science images from iNaturalist, and
+multispectral imagery for the camera trap locations. The camera trap data,
+provided by the Wildlife Conservation Society (WCS) \citep{wcs_lila}, contains
+263,528 images of 206 species from 414 locations across 12 countries worldwide.
+The official training/test split is based on camera location, with the training
+set containing 203,314 images from 323 locations and the test set containing
+60,214 images from 91 locations. As most publicly available camera trap data
+does not include count labels, the count labels for image bursts were collected
+exclusively for the test set to encourage the development of methods that can
+learn to count without explicit labels \citep{beery2021iwildcam}.
+
+The dataset also includes a subset of the iNaturalist 2017-2019 competition
+dataset \citep{horn2018inat}, with 13,051 additional images from 75 species.
+Although these images typically present a different data distribution and are of
+higher quality, they can still be valuable for improving classification.
+
+Finally, the dataset includes raw remote sensing data for each camera location,
+collected by the Landsat 8 satellite, allowing investigation into whether the
+model performance can be improved using this kind of multimodal data. GPS
+coordinates for each camera location are provided, with most of them obfuscated
+for privacy and security reasons. Each location has been randomly adjusted to
+lie within 1 km of the original location center.
+
+\subsection{A heuristic baseline for counting animals in camera-trap
+images}
+
+Our proposed heuristic baseline consists of two components: an image burst
+classifier based on an ensemble of EfficientNet-B2 \citep{tan2019efficientnet}
+models and a counting heuristic based on the bounding boxes generated by
+MegaDetectorV4 \citep{beery2019efficient}. The main idea is to estimate the
+number of animals present in the sequence based on the image with the highest
+number of bounding boxes, which could provide a lower bound on the number of
+animals across the sequence if the animal detector achieves perfect detection.
+Additionally, since the vast majority of the images contain only a single
+species, the simplest approach for classification is to assume a single species
+across the entire sequence and use the most likely species prediction to the
+total count of individuals.
+
+Initially, MegaDetectorV4 is run on all images to detect animals. Next, we run
+the image classifiers on both the full image and the bounding box with the
+highest confidence score. The image prediction is calculated as the weighted
+average of the predictions from both models. To predict the species in the
+sequence, we average the species predictions of the non-empty images in the
+burst. Finally, we generate a prediction vector containing the number of
+individuals of each species -- in our case, only a single species -- based on
+the maximum number of bounding boxes with confidence score higher than $0.8$
+across any image in the sequence. If the classifiers identify only empty images,
+the vector will contain only zeros. \autoref{fig:wildcam2021_winning}
+presents a diagram summarizing the steps of our proposed heuristic baseline.
+
+This classification strategy limits us to predicting only one species per
+sequence. However, it has proven to be a strong baseline, as it was the winning
+solution in iWildCam 2021. In the next subsections, we detail our
+implementation.
+
+\subsection{Species classifier}
+
+We trained two species classifiers based on the EfficientNet-B2 architecture:
+one trained using full images and another (bbox) trained with square crops containing
+animals, extracted from bounding boxes generated by MegaDetectorV4. We chose
+this approach following the iWildCam 2020 solutions, where the bbox model can
+provide better predictions due to the highlighted animal. On the other hand, the
+full image model has been shown to be more effective at classifying images with
+animal herds. We used only the provided camera-trap data to train the classifier
+models.
+
+To train the bbox model, we treated all bounding boxes with a
+confidence score equal to or higher than 0.6 as independent training samples and
+applied square crops around them, using the size of the largerst bbox side. If
+no bounding box met this confidence threshold, we used the full image for that
+training instance. The image label was assigned as the bounding box label.
+
+During inference, the species prediction assigned to each image is the weighted
+average of the predictions from the bounding box with the highest score, the
+full image, and their horizontally mirrored versions, following the approach
+used by the winning solution of iWildCam 2020: 0.15 (full image) + 0.15
+(mirrored full image) + 0.35 (bbox) + 0.35 (mirrored bbox). To classify a
+sequence, we average the predictions of all nonempty images within the sequence.
+
+\textbf{Handling class imbalance}. To address the class imbalance problem
+inherent in real-world applications, such as the one represented in iWildCam
+2021 dataset, we applied the Balanced Group Softmax (BAGS) method. Following the
+original BAGS papers, we grouped classes into 4 softmax groups based to the
+number $N$ of training instances: $N < 10$, $10 \le N < 100$, $100 \le N <
+1000$, $N \ge 1000$. For each softmax group, we included the class ``others'' to
+represent instances from all classes not included in that group. During
+training, for each softmax, we undersampled the "others" category to ensure it
+contained at most eight times the number of instances belonging to other classes
+per batch, to prevent it from dominating the softmax. Additionally, we included
+a special softmax group for the foreground/background classification. For the
+final prediction, we remapped all predictions to the original softmax, ignoring
+the ``others'' class. As in the original paper, these predictions are not true
+probabilities since they do not sum up to one, but we consider the highest value
+as the BAGS prediction.
+
+\textbf{Image preprocessing}. For image preprocessing, we applied a square crop
+centered on the bounding boxes or a random crop of aspect ratio
+sampled in $[3/4, 4/3]$ and area in $[65\%, 100\%]$ for full image, followed
+by a random horizontal flip and RandAugment (N=6, M=2). Then, the images were
+normalized and resized to match the input dimensions of the network. During the
+fix train/test resolution stage, we used inference preprocessing, which consists
+only of normalizing and resizing the image or square crop to the input
+dimensions of the network.
+
+\textbf{Multi-stage training}. We trained the models in multiple stages. First,
+each model was trained using the standard softmax with the default input
+resolution of EfficientNet-B2 (260 x 260). In the first stage, only the
+classifier layer was trained for 4 epochs, while the backbone -- previously
+initialized with ImageNet weights -- remained frozen. In the second stage, all
+layers were unfrozen, and all weights were fine-tuned for 20 epochs. In the
+third stage, to fix the train/test resolution discrepancy issue
+\citep{touvron2019fixing}, we fine-tuned only the last inverted bottleneck block
+of the EfficientNet-B2 architecture and the classifier layer for 2 more epochs.
+This was done using a higher input resolution (380 x 380) and applying the
+inference preprocessing steps to the images. Afterward, we removed the plain
+softmax and trained the BAGS header on top of the backbone, which was kept
+frozen. In the fourth stage, the BAGS header was trained for 12 epochs using
+training preprocessing with data augmentation at the inference resolution (380 x
+380). Finally, in the fifth stage, the BAGS header was fine-tuned for 2 epochs
+using inference-time preprocessing.
+\autoref{table:countig_baseline_train_stages} presents a summary of the
+parameters used.
+
+\begin{table}[htb]
+\caption{Training hyperparameters for each stage of the classifiers training.}
+\label{table:countig_baseline_train_stages}
+\begin{center}
+\begin{tabular}{llllll}
+\hline
+ & \textbf{Weights trained} & \textbf{Epochs} &
+\textbf{LR} & \textbf{Preprocessing} & \textbf{Resolution} \\
+\hline
+Stage 1* & Classifier layer                   & 4  & 0.01  & Training  & 260 x
+260 \\
+Stage 2  & All                                & 20 & 0.01  & Training  & 260 x
+260 \\
+Stage 3  & Last block and classif. & 2  & 0.001 & Inference & 380 x
+380 \\
+Stage 4  & BAGS header             & 12 & 0.01  & Training  & 380 x
+380 \\
+Stage 5  & BAGS heade             & 2  & 0.001 & Inference & 380 x
+380 \\ \hline
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item [*] * For the bounding box model only.
+\end{tablenotes}
+\end{center}
+\end{table}
+
+\textbf{Implementation details}. To adjust the training hyperparameters, we
+held out a validation set from the training set based on the locations.
+However, to train the final models, we used all images available in the
+original training set. The models were initialized with ImageNet weights and
+trained with a batch size of $32$ using SGD with an initial learning rate of
+$0.01$ ($0.001$ during the fix train/test resolution stages) and momentum of
+$0.9$. The learning rate was linearly warmed up from $0$ to the initial value
+over one-third of the steps in the first epoch of each training stage, and then
+decayed to $0$ following the cosine schedule. We also applied label smoothing
+with a value of $0.1$.
+
+\section{Results}
+
+The iWildCam 2021 challenge used the mean columnwise root-mean-squared error
+(MCRMSE), described in \autoref{sec:count_metrics}, to evaluate solutions for
+counting animals in camera traps. \autoref{table:iwildcam2021_results} presents
+the final standings based on the private score, which was calculated using 50\%
+of the test set. Our approach was ranked first in the challenge out of 42 teams
+that entered the competition.
+
+\begin{table}[htb]
+\caption{The iWildCam 2021 final results on the private test set.}
+\label{table:iwildcam2021_results}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+\textbf{Solution}    & \textbf{Private score} \\ \hline
+\textbf{1st place (ours)}        & \textbf{0.0293278}     \\
+2nd place             & 0.0293786              \\
+3rd place             & 0.0308570              \\
+4th place             & 0.0308756              \\
+5th place             & 0.0336513              \\
+6th place             & 0.0339028              \\
+Baseline - iWildCam 2020 Winner  & 0.0348171              \\
+7th place             & 0.0376347              \\
+8th place             & 0.0383956              \\
+Baseline - All zeros             & 0.0385147              \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+As stated by the competition organizers \citep{beery2021iwildcam}, the MCRMSE
+metric tends to be a small number even when the error in counts is large. This
+occurs because camera traps typically have a small number of individuals and
+because the model is double penalized for both species and counting errors. The
+organizers provided some simple baselines, which we specify in
+\autoref{table:iwildcam2021_results} for comparison purposes. One baseline
+uses the iWildCam 2020 winner's species predictions combined with the maximum
+number of bounding boxes with confidence score higher than 0.8 across the
+sequence -- in line with our solution. The all zeros baseline predicts zero for
+all instances, which performs surprisely well. This highlights how challenging
+this counting problem is, given its inherent conditions.
+
+We present an ablation study to demonstrate the effectiveness of certain design
+choices in our heuristic solution, as shown in
+\autoref{table:iwildcam2021_baseline_ablation}. This study considers only the
+species classifier at the image level used for the final submission. A
+well-known approach to improving classification predictions is using test-time
+augmentation; in our solution, we added a horizontal flip to both full image and
+bbox models. We also found that averaging the species predictions across images
+in a sequence provides better performance than the majority voting approach.
+Finally, we used a threshold of $0.8$ for counting MegaDetectorV4 bounding
+boxes, as proposed by the organizers. We initially used $0.9$ during the
+competition but found that it discarded too many valid bounding boxes.
+
+\begin{table}[htb]
+\caption{An ablation study of our baseline solution. The bold line represents
+our final solution.}
+\label{table:iwildcam2021_baseline_ablation}
+\begin{center}
+\begin{tabular}{llll}
+\hline
+\textbf{Test-time aug.} & \textbf{Seq. aggreg.} &
+\textbf{MDv4 threshold} & \textbf{Private score} \\ \hline
+-               & Voting  & 0.9 & 0.0314948 \\
+Horizontal flip & Voting  & 0.9 & 0.0305960 \\
+Horizontal flip & Average & 0.9 & 0.0294853 \\
+\textbf{Horizontal flip} & \textbf{Average}  & \textbf{0.8} & \textbf{0.0293278}
+ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Final remarks}
+
+Counting animals in sequences of camera trap images is a challenging problem,
+especially considering the scenario where there is no count labels, as is
+the case of most of public datasets. In this chapter, we presented a solution
+based on a heuristic strategy that uses the bounding boxes generated by
+MegaDetectorV4 combined with an ensemble of classifiers. Although our
+strategy is limited to predicting only one species per sequence, it has been
+proven to be a strong baseline for the problem, winning the iWildCam 2021
+competition.
+
+However, we believe that a more natural mechanism should be based on tracking
+animals across images (multi-object tracking), classifying each track, and
+counting them. Such an approach could also be more interpretable to humans,
+avoiding ``black box'' solutions like those proposed by
+\citet{norouzzadeh2018automatically}. During the competition, we experimented
+with DeepSORT \citep{Wojke2017simple} and variations using embedding features
+from ReID models. However, due to time constraints, we were unable to explore
+this strategy in depth.
+
+Our next steps on the counting animals problem include improving the proposed
+baseline solution using the strategies explored in the other chapters, such as a
+better empty-frame detection, long-tail approaches adapted to camera-trap data,
+and more powerful classification models.
+
+In the next chapter, we highlight the main contributions this work has already made to research in automated camera-trap image processing and outline future directions and next steps.

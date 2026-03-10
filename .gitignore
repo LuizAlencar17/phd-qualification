@@ -1,0 +1,64 @@
+# =========================
+# LaTeX / latexmk artifacts
+# =========================
+
+# Core build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Bibliography
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Index / glossaries / acronyms
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.idx
+*.ilg
+*.ind
+*.ist
+
+# Beamer / presentations
+*.nav
+*.snm
+*.vrb
+
+# Other common outputs
+*.dvi
+*.ps
+*.xdv
+*.thm
+*-converted-to.pdf
+
+# Build directories (if you choose to use them)
+build/
+out/
+
+# Ignore compiled PDF only in the main latex folder
+latex/*.pdf
+
+# =========================
+# Editors / OS
+# =========================
+
+.vscode/
+.idea/
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
