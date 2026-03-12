@@ -88,17 +88,132 @@ One of the most common preprocessing steps is normalization, which consists of s
 
 Another important preprocessing operation is image resizing, which adjusts the spatial resolution of images to match the input dimensions expected by the model architecture \citep{goodfellow2016deep}. Many convolutional neural networks require fixed-size inputs, such as (224 X 224) or (299 X 299) pixels, which makes resizing a necessary step when working with datasets containing images of varying resolutions. Resizing can be performed using interpolation techniques that preserve the overall structure of the visual content while adapting it to the required size. Although some modern architectures are capable of processing images with variable spatial dimensions, resizing remains widely used to standardize inputs and optimize computational efficiency during training and inference.
 
-Data augmentation is another critical preprocessing technique that aims to artificially increase the diversity of the training dataset by applying controlled transformations to existing images. These transformations may include horizontal or vertical flipping, rotations, random cropping, translations, and adjustments to color properties such as brightness, contrast, and saturation \citep{maharana2022review, shorten2019survey}. By exposing the model to multiple variations of the same image, data augmentation helps reduce overfitting and improves the ability of the model to generalize to unseen data. However, designing an effective augmentation pipeline can be challenging, as the choice of transformations and their parameters must be consistent with the characteristics of the dataset and the target task. Excessive or inappropriate transformations may distort relevant visual features or introduce unrealistic patterns, potentially degrading model performance. Consequently, careful selection and tuning of preprocessing strategies are essential to achieve robust and reliable results in computer vision applications \citep{maharana2022review}.
+Data augmentation is another critical preprocessing technique that aims to artificially increase the diversity of the training dataset by applying controlled transformations to existing images (see Figure \ref{fig:data-augmentation}). These transformations may include horizontal or vertical flipping, rotations, random cropping, translations, and adjustments to color properties such as brightness, contrast, and saturation \citep{maharana2022review, shorten2019survey}. By exposing the model to multiple variations of the same image, data augmentation helps reduce overfitting and improves the ability of the model to generalize to unseen data. However, designing an effective augmentation pipeline can be challenging, as the choice of transformations and their parameters must be consistent with the characteristics of the dataset and the target task. Excessive or inappropriate transformations may distort relevant visual features or introduce unrealistic patterns, potentially degrading model performance. Consequently, careful selection and tuning of preprocessing strategies are essential to achieve robust and reliable results in computer vision applications \citep{maharana2022review}.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=6in]{images/data-augmentation.png}
+\caption{Data augmentation examples}
+\legend{Source: Author.}
+\label{fig:data-augmentation}
+\end{figure*}
 
 \section{Training techniques}
-% Como funciona o processo de treinamento, quais são as etapas envolvidas, quais são os desafios comuns e como superá-los, etc.
-% Conteudos: Otimizadores (SGD, Adam, etc.), Learning rate scheduling, Early stopping, Regularization techniques (dropout, weight decay), etc.
+The training of deep neural networks represents a high-dimensional, non-convex optimization problem where the objective is to minimize a loss function $\mathcal{L}(\theta)$ relative to a set of parameters $\theta \in \mathbb{R}^d$. This process is not merely a computational exercise in gradient descent but a complex interplay between algorithmic stability, numerical convergence, and the ultimate goal of statistical generalization \cite{goodfellow2016deep}.
+
+\subsection{The Optimization Landscape: SGD vs. Adaptive Methods}
+
+At the core of neural network training is the optimization landscape, a manifold characterized by saddle points, plateaus, and local minima. The choice of optimizer determines how the trajectory of $\theta$ navigates this surface.
+
+\subsubsection{Stochastic Gradient Descent (SGD)}
+SGD remains the foundational algorithm, updating parameters via:
+\begin{equation}
+\theta_{t+1} = \theta_t - \eta \nabla \mathcal{L}(\theta_t; x^{(i)}, y^{(i)})
+\end{equation}
+where $\eta$ is the learning rate. While computationally efficient, vanilla SGD often struggles with "ravines" where the surface curves much more steeply in one dimension than another. The introduction of momentum mitigates this by accumulating a velocity vector, effectively smoothing the path and accelerating convergence in consistent directions.
+
+\subsubsection{Adaptive Methods: Adam and Beyond}
+Adaptive optimizers, most notably Adam (Adaptive Moment Estimation), maintain per-parameter learning rates. Adam computes individual updates based on estimates of the first and second moments of the gradients:
+\begin{align}
+m_t &= \beta_1 m_{t-1} + (1 - \beta_1)g_t \\
+v_t &= \beta_2 v_{t-1} + (1 - \beta_2)g_t^2
+\end{align}
+While Adam typically exhibits faster initial convergence, empirical evidence suggests that SGD with momentum often leads to better generalization on the test set \cite{wilson2018marginalvalueadaptivegradient}.
+
+\subsection{Dynamic Training Protocols}
+
+Optimization is rarely a static process. To navigate the loss surface effectively, researchers employ dynamic protocols that adjust the training regime in real-time.
+
+\begin{itemize}
+    \item \textbf{Learning Rate (LR) Scheduling:} A static $\eta$ is often suboptimal. Early training requires a high $\eta$ to escape local suboptimality, while later stages require a decaying $\eta$ to settle into the global minimum.
+    \item \textbf{Early Stopping:} This serves as a temporal regularizer. By monitoring the loss on a disjoint validation set, training is halted once the validation error begins to diverge from the training error, preventing the model from memorizing noise.
+\end{itemize}
+
+\subsection{Regularization and the Bias-Variance Tradeoff}
+
+The fundamental challenge in deep learning is the bias-variance tradeoff: balancing the model's ability to fit the training data against its ability to perform on unseen data.
+
+\subsubsection{Weight Decay ($L_2$ Regularization)}
+Weight decay modifies the objective function by adding a penalty term proportional to the square of the magnitude of the weights:
+\begin{equation}
+\mathcal{L}_{reg} = \mathcal{L} + \lambda \sum \theta^2
+\end{equation}
+This forces the optimization process to prefer smaller weights, resulting in a smoother mapping function.
+
+\subsubsection{Dropout}
+Dropout is a stochastic regularization technique where, during each training iteration, a fraction $p$ of neurons is randomly set to zero. This prevents co-adaptation, where neurons rely on the presence of specific other neurons to correct their errors \cite{srivastava2014dropout}.
+
+\subsection{Practical Challenges and Modern Solutions}
+
+\begin{itemize}
+    \item \textbf{Vanishing and Exploding Gradients:} In deep networks, backpropagation can cause gradients to vanish or explode. Modern solutions include residual connections (ResNets) and gradient clipping.
+    \item \textbf{Internal Covariate Shift:} As parameters change, the distribution of inputs to subsequent layers shifts. Batch Normalization (BN) addresses this by normalizing activations to have zero mean and unit variance within a mini-batch \cite{ioffe2015batch}.
+\end{itemize}
+
+\subsection{Mathematical Analysis of Adam's Convergence}
+
+The convergence of Adam is analyzed through Regret Analysis. For a sequence of convex loss functions $f_1, \dots, f_T$, the regret $R(T)$ is bounded by:
+\begin{equation}
+R(T) = \sum_{t=1}^T [f_t(\theta_t) - f_t(\theta^*)] \leq O(\sqrt{T})
+\end{equation}
+However, it is critical to note that Adam can fail to converge in specific settings where the effective learning rate increases over time \cite{reddi2019convergenceadam}. The AMSGrad variant addresses this by ensuring $\hat{v}_t = \max(\hat{v}_{t-1}, v_t)$.
 
 \section{Evaluation Metrics}
+
+The rigorous assessment of model performance is a cornerstone of deep learning research. Relying on a single scalar value often fails to capture the nuances of model behavior, particularly in complex high-dimensional feature spaces. This section details the mathematical and conceptual frameworks for evaluating classification performance, with a specific focus on metrics robust to class distribution shifts.
+
 \subsection{Classification Metrics}
-% Acurácia, precisão, recall, F1-score, etc.
+
+Classification performance is typically derived from the \textit{Confusion Matrix}, which partitions predictions into True Positives ($TP$), True Negatives ($TN$), False Positives ($FP$), and False Negatives ($FN$). While these counts provide a raw view of performance, normalized metrics are required for comparative analysis.
+
+\subsubsection{Accuracy}
+Accuracy represents the ratio of correctly predicted observations to the total observations:
+\begin{equation}
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\end{equation}
+Despite its ubiquity, accuracy is notoriously misleading in the presence of \textbf{class imbalance}. In a dataset where 99\% of samples belong to the majority class, a "naive" classifier that always predicts the majority class achieves 99\% accuracy while failing to learn any discriminative features of the minority class.
+
+\subsubsection{Precision, Recall, and the F1-Score}
+To address the limitations of accuracy, we employ metrics that isolate the performance on the positive (often minority) class:
+
+\begin{itemize}
+    \item \textbf{Precision (Positive Predictive Value):} Measures the fidelity of the model's positive predictions. It is the ratio of correctly predicted positive observations to the total predicted positives.
+    \begin{equation}
+    \text{Precision} = \frac{TP}{TP + FP}
+    \end{equation}
+    
+    \item \textbf{Recall (Sensitivity):} Measures the model's ability to find all relevant cases within a dataset. 
+    \begin{equation}
+    \text{Recall} = \frac{TP}{TP + FN}
+    \end{equation}
+    
+    \item \textbf{F1-Score:} The harmonic mean of Precision and Recall. Unlike the arithmetic mean, the harmonic mean penalizes extreme values, ensuring that a high F1-score requires both high precision and high recall.
+    \begin{equation}
+    F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+    \end{equation}
+\end{itemize}
+
+In doctoral research, the choice between these depends on the \textbf{cost of error}. In medical diagnosis, high Recall is often prioritized to avoid missing true cases (False Negatives), whereas in spam detection, high Precision is favored to avoid misclassifying legitimate emails (False Positives).
+
 \subsection{Precision-Recall Curve}
-% O que é a curva de precisão-recall, como é calculada, quais são suas aplicações, etc.
+
+In many deep learning architectures, the final layer outputs a probability distribution rather than a discrete label. The conversion to a label depends on a \textit{classification threshold} $\tau$ (conventionally set at 0.5). However, the optimal $\tau$ is rarely static.
+
+\subsubsection{The Threshold Trade-off}
+The Precision-Recall (PR) curve is constructed by plotting Precision against Recall at every possible threshold $\tau \in [0, 1]$. As the threshold decreases, the model becomes more "permissive" increasing Recall but typically decreasing Precision as more False Positives are introduced.
+
+
+
+\subsubsection{Area Under the Precision-Recall Curve (AUPRC)}
+The AUPRC (or Average Precision) provides a single-figure summary of the PR curve:
+\begin{equation}
+\text{AUPRC} = \sum_{n} (R_n - R_{n-1}) P_n
+\end{equation}
+where $P_n$ and $R_n$ are the precision and recall at the $n$-th threshold. 
+
+\subsubsection{PR vs. ROC in Imbalanced Scenarios}
+While the Receiver Operating Characteristic (ROC) curve is frequently used, it can present an overly optimistic view of model performance when the negative class is overwhelming. This is because the False Positive Rate ($FP / (FP+TN)$) remains small due to the large $TN$ denominator. The PR curve, by contrast, does not include $TN$ in its primary axes, making it a far more sensitive and honest indicator of performance for imbalanced tasks common in anomaly detection and rare-event prediction.
 
 \section{Final Remarks}
-% Resumo dos principais pontos abordados nesta seção, e como eles se relacionam com o restante do trabalho.
+
+This chapter established the theoretical and technical frameworks—ranging from foundational deep learning to multimodal systems such as CLIP, BLIP, and Gemini—necessary for robust wildlife classification. The transition from unimodal computer vision to vision-language models demonstrates how semantic alignment between text and imagery enhances model generalization. Furthermore, the analysis of optimization, regularization, and preprocessing highlights the importance of algorithmic stability when processing high-variance visual data from outdoor environments. The focus on evaluation metrics robust to class imbalance, specifically the Precision-Recall curve and AUPRC, directly addresses the statistical underrepresentation of rare species in camera trap datasets. These fundamentals provide the theoretical justification and practical tools for the research problem. Ultimately, the multimodal reasoning and training protocols described here inform the methodological choices in subsequent chapters, ensuring that the resulting species classification approaches are technically sound and optimized for automated biodiversity monitoring.
