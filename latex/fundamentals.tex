@@ -4,16 +4,28 @@ This chapter introduces the fundamental concepts that underpin this work. We beg
 
 Finally, we summarize the core ideas discussed in this chapter and explain how they connect to the remainder of the thesis. Overall, this chapter provides the conceptual and technical foundation necessary to understand the methods and results presented in the subsequent chapters, particularly for readers who may not be familiar with the underlying principles of machine learning and computer vision.
 
+\section{Zero-Shot and Few-Shot Learning Paradigms}
 
-\section{Computer vision architectures}
+The classification of animal species in camera trap images is constrained by the long-tailed distribution of natural populations. In these datasets, a small number of “head” classes (common species) contain many training samples, while a long tail of rare or endangered species—often of greater conservation interest—is represented by very few examples \citep{beery2018recognition}. Formally, this produces a strong class imbalance in which the cardinality of the majority set $D_{major}$ exceeds that of the minority set $D_{minor}$ by several orders of magnitude. Traditional supervised learning methods, which assume independent and identically distributed (i.i.d.) data, perform poorly in this setting. Models tend to overfit features of common species and lose sensitivity to minority classes, often misclassifying rare animals as the closest majority class in the feature space.
+
+To address the limitations of standard supervised learning, the paradigms of Few-Shot Learning (FSL) and Zero-Shot Learning (ZSL) have been proposed. FSL aims to train models that generalize to new tasks containing only a few labeled examples ($k$-shot, typically $k \leq 10$) by leveraging prior knowledge through approaches such as meta-learning \citep{vinyals2016matching}. ZSL extends this idea by enabling recognition of categories that were not present during training \citep{xian2017zero}. Both paradigms rely on transferring knowledge from seen classes $\mathcal{S}$ to unseen classes $\mathcal{U}$ through a shared representation, often referred to as a semantic embedding space.
+
+A common method within the FSL framework is the Prototypical Network \citep{snell2017prototypical}. This approach assumes the existence of an embedding function $f_\phi$, typically implemented as a deep neural network, that maps inputs into an $M$-dimensional space where samples of the same class cluster around a representative point, or prototype. For a class $c$, the prototype $v_c$ is defined as the mean vector of its embedded support samples:
+
+$$v_c = \frac{1}{|S_c|} \sum_{(x_i, y_i) \in S_c} f_\phi(x_i)$$
+
+Classification is performed by assigning a query sample to the nearest prototype using a distance metric, such as squared Euclidean distance. This metric-based formulation is useful for camera trap data because it allows the model to represent a rare species using only a few images, without requiring extensive parameter updates.
+
+Multimodal models extend this idea by replacing or complementing image-based prototypes with semantic prototypes derived from natural language. In vision-language models such as Learning Transferable Visual Models From Natural Language Supervision, the prototype of an unseen species can be represented by a text embedding generated from a descriptive prompt (e.g., “a photo of a Panthera onca in a rainforest”). By embedding both images and text in a shared multimodal space, the model can perform zero-shot classification by measuring the cosine similarity between a camera trap image and text-derived species prototypes.
+
+In biodiversity monitoring, these paradigms provide a way to address the cold-start problem when studying new regions or rare species. When a species has few or no labeled images, multimodal zero-shot approaches allow researchers to define the category using textual descriptions. This approach connects ecological knowledge—where species are described through morphological and behavioral traits—with computer vision systems, enabling automated recognition even when visual training data are limited.
 
 \section{Multimodal Large Language Models}
 \subsection{CLIP}
 
-Contrastive Language-Image Pre-training (CLIP), introduced by ~\citep{radford2021learning}, proposes a departure from traditional supervised computer vision by replacing fixed, manually annotated label sets with large-scale natural language supervision. Instead of training a model to predict one among a predefined list of categories, CLIP learns directly from approximately 400 million image-text pairs collected from the internet. The central intuition is that natural language offers a far richer and more flexible supervisory signal than curated taxonomies such as ImageNet classes. Text descriptions associated with images encode not only object names, but attributes, relationships, actions, and contextual cues. By leveraging this weak but abundant supervision at web scale, CLIP aims to learn visual representations that are inherently aligned with language and therefore more transferable across tasks and domains.
+Contrastive Language–Image Pre-training (CLIP), introduced by \citep{radford2021learning}, departs from traditional supervised computer vision by replacing fixed, manually annotated label sets with large-scale natural language supervision. Instead of predicting a category from a predefined list, CLIP learns from approximately 400 million image–text pairs collected from the internet. The key idea is that natural language provides a richer supervisory signal than curated taxonomies such as ImageNet classes. Text associated with images can encode object names, attributes, relationships, actions, and contextual information. By leveraging large-scale image–text data, CLIP learns visual representations aligned with language, which improves transfer across tasks and domains.
 
-Technically, CLIP is composed of two neural networks trained jointly: an image encoder (either a modified ResNet or a Vision Transformer) and a Transformer-based text encoder (see Figure
-\ref{fig:clip_architecture}). Each encoder maps its input into a latent vector space, and both outputs are projected into a shared multimodal embedding space where cosine similarity measures semantic alignment. Rather than generating captions or predicting words token by token, CLIP uses a contrastive objective: given a minibatch of $(N)$ image-text pairs, the model learns to identify the correct pairing among all $(N^2)$ possible combinations. The training objective maximizes similarity between matched pairs and minimizes similarity between mismatched ones using a symmetric cross-entropy loss over temperature-scaled cosine similarities. This formulation significantly improves training efficiency compared to generative captioning approaches and enables stable large-scale training from scratch without pre-initialization from supervised models.
+Technically, CLIP consists of two neural networks trained jointly: an image encoder (either a modified ResNet or a Vision Transformer) and a Transformer-based text encoder (see Figure \ref{fig:clip_architecture}). Each encoder maps its input into a latent vector, and both outputs are projected into a shared multimodal embedding space where cosine similarity measures semantic alignment. Instead of generating captions or predicting tokens sequentially, CLIP uses a contrastive objective. Given a minibatch of $N$ image–text pairs, the model learns to identify the correct pairing among the $N^2$ possible combinations. The training objective increases similarity between matched pairs and decreases similarity between mismatched ones using a symmetric cross-entropy loss over temperature-scaled cosine similarities. This formulation improves training efficiency compared to generative captioning methods and enables stable large-scale training without supervised pretraining.
 
 \begin{figure*}[!ht]
 \centering
@@ -23,15 +35,15 @@ Technically, CLIP is composed of two neural networks trained jointly: an image e
 \label{fig:clip_architecture}
 \end{figure*}
 
-A defining property of CLIP is its ability to perform zero-shot transfer. Because the model learns a joint embedding space aligned with natural language, it can be adapted to a new classification task without additional training. To classify images in a new dataset, one simply encodes textual prompts describing each class (e.g., “a photo of a dog”), embeds them using the text encoder, and compares them to image embeddings via cosine similarity . This effectively produces a linear classifier whose weights are dynamically generated from language. In zero-shot evaluation on ImageNet, CLIP achieves 76.2\% top-1 accuracy, matching the original supervised ResNet-50 despite using none of ImageNet's labeled training examples ~\citep{radford2021learning}. Across more than 30 datasets covering object recognition, fine-grained classification, action recognition, optical character recognition, and geo-localization, CLIP often performs competitively with fully supervised baselines, and in many cases surpasses linear probes trained on conventional ImageNet features.
+A key property of CLIP is its ability to perform zero-shot transfer. Because the model learns a joint embedding space aligned with natural language, it can be applied to new classification tasks without additional training. To classify images in a new dataset, textual prompts describing each class (e.g., “a photo of a dog”) are encoded using the text encoder and compared to image embeddings using cosine similarity. This produces a linear classifier whose weights are generated from language. In zero-shot evaluation on ImageNet, CLIP achieves 76.2\% top-1 accuracy, matching the original supervised ResNet-50 despite using none of ImageNet’s labeled training examples \citep{radford2021learning}. Across more than 30 datasets—including object recognition, fine-grained classification, action recognition, optical character recognition, and geolocation—CLIP often performs competitively with supervised baselines and sometimes surpasses linear probes trained on standard ImageNet features.
 
-Beyond raw performance, CLIP exhibits several notable empirical properties. Its zero-shot performance scales smoothly with model size and compute, following predictable log-log trends similar to those observed in large language models. Larger Vision Transformer variants outperform convolutional counterparts in compute efficiency, and representation learning evaluations show that CLIP features can exceed those of state-of-the-art supervised and self-supervised models on diverse benchmarks. At the same time, the model reveals limitations in tasks requiring fine spatial reasoning, counting, or highly specialized domain knowledge, highlighting that semantic alignment alone does not guarantee structured reasoning capabilities ~\citep{radford2021learning}. Overall, CLIP demonstrates that large-scale multimodal contrastive learning can produce open-vocabulary visual systems with strong generalization ability, establishing a foundation for subsequent multimodal and vision-language models.
+CLIP also exhibits several empirical properties. Its zero-shot performance scales predictably with model size and compute. Larger Vision Transformer variants are more compute-efficient than convolutional models, and representation learning evaluations show that CLIP features perform well across diverse benchmarks. However, the model still struggles with tasks requiring precise spatial reasoning, counting, or specialized domain knowledge, indicating that semantic alignment alone does not guarantee structured reasoning capabilities \citep{radford2021learning}. Overall, CLIP demonstrates that large-scale multimodal contrastive learning can produce open-vocabulary visual systems with strong generalization ability.
 
 \subsection{BLIP}
-Bootstrapping Language-Image Pre-training (BLIP) is a vision–language framework designed to improve the performance of multimodal models on both understanding and generation tasks. Traditional vision–language models typically focus on a single category of tasks, such as image–text retrieval or image captioning. BLIP addresses this limitation by proposing a unified architecture capable of supporting a wide range of multimodal tasks. In addition to its architectural design, the framework introduces a data bootstrapping strategy that improves the quality of large-scale image–text datasets collected from the web, which often contain noisy or inaccurate captions ~\citep{li2022blip}. 
 
-The BLIP model is built upon a Multimodal Mixture of Encoder–Decoder (MED) architecture that enables it to operate in multiple modes depending on the task being performed. The architecture combines a visual encoder, typically based on a Vision Transformer (ViT), with a text transformer that processes textual inputs and interacts with visual representations through cross-attention layers (see Figure
-\ref{fig:blip_architecture}). This design allows the model to function as a unimodal encoder for representation learning, as an image-grounded text encoder for multimodal understanding, or as an image-grounded text decoder for text generation. As a result, BLIP can effectively learn relationships between visual content and language while also generating natural language descriptions conditioned on images  ~\citep{li2022blip}. 
+Bootstrapping Language–Image Pre-training (BLIP) is a vision–language framework designed to improve multimodal models on both understanding and generation tasks. Many vision–language systems focus on a single task, such as image–text retrieval or captioning. BLIP addresses this limitation by introducing a unified architecture that supports multiple multimodal tasks. The framework also proposes a data bootstrapping strategy to improve the quality of large-scale image–text datasets collected from the web, which often contain noisy or inaccurate captions \citep{li2022blip}.
+
+BLIP is based on a Multimodal Mixture of Encoder–Decoder (MED) architecture. The model combines a visual encoder, typically a Vision Transformer (ViT), with a text transformer that processes textual inputs and interacts with visual representations through cross-attention layers (see Figure \ref{fig:blip_architecture}). This design allows the system to operate in different modes depending on the task. It can function as a unimodal encoder for representation learning, an image-grounded text encoder for multimodal understanding, or an image-grounded text decoder for text generation. As a result, BLIP can learn relationships between visual content and language while also generating text conditioned on images \citep{li2022blip}.
 
 \begin{figure*}[!ht]
 \centering
@@ -41,54 +53,54 @@ The BLIP model is built upon a Multimodal Mixture of Encoder–Decoder (MED) arc
 \label{fig:blip_architecture}
 \end{figure*}
 
-During pre-training, BLIP optimizes three complementary learning objectives that strengthen the alignment between images and text. The image–text contrastive (ITC) objective aligns visual and textual representations in a shared embedding space, improving retrieval performance. The image–text matching (ITM) objective determines whether a given image and text pair correspond to each other, encouraging the model to capture fine-grained multimodal relationships. Finally, a language modeling (LM) objective allows the model to generate textual descriptions from visual inputs using an autoregressive decoding process. Together, these objectives enable the model to perform both multimodal understanding and generation tasks within a single framework  ~\citep{li2022blip}. 
+During pre-training, BLIP optimizes three complementary objectives that align images and text. The image–text contrastive (ITC) objective aligns visual and textual representations in a shared embedding space and improves retrieval performance. The image–text matching (ITM) objective predicts whether a given image and text pair correspond to each other, encouraging the model to capture fine-grained multimodal relationships. Finally, a language modeling (LM) objective enables the model to generate textual descriptions from images using an autoregressive decoding process. Together, these objectives allow the model to perform both multimodal understanding and generation tasks within a single framework \citep{li2022blip}.
 
-Another important contribution of BLIP is its Captioning and Filtering (CapFilt) data bootstrapping strategy, which improves the quality of training datasets. Web-collected image–text pairs often contain noisy captions that may not accurately describe the visual content. To address this issue, BLIP employs a captioning model to generate synthetic captions for images and a filtering model to remove low-quality text descriptions. This process produces a cleaner and more informative training dataset, which significantly enhances the model’s performance across several tasks, including image–text retrieval, image captioning, and visual question answering. Experimental results demonstrate that this approach leads to substantial improvements compared to previous vision–language models trained on similar data scales ~\citep{li2022blip}. 
+Another contribution of BLIP is its Captioning and Filtering (CapFilt) data bootstrapping strategy. Image–text pairs collected from the web often contain captions that do not accurately describe the visual content. To address this problem, BLIP uses a captioning model to generate synthetic captions and a filtering model to remove low-quality text descriptions. This process produces a cleaner training dataset and improves performance on tasks such as image–text retrieval, image captioning, and visual question answering \citep{li2022blip}.
 
 \subsection{GPT}
-The Generative Pre-trained Transformer (GPT) is a family of large language models designed to understand and generate natural language text. GPT models are based on the Transformer architecture and are trained using large-scale text corpora to learn statistical patterns in language. Through this training process, the model learns to predict the next token in a sequence given the previous context, enabling it to generate coherent and contextually relevant text. Because of this autoregressive formulation, GPT can perform a wide variety of language tasks without requiring task-specific architectures ~\citep{achiam2023gpt}. 
 
-GPT models rely on a Transformer-based architecture that uses self-attention mechanisms to model relationships between tokens in a sequence. During training, the model processes large amounts of text data and learns representations that capture syntactic, semantic, and contextual information. The model is first trained through a large-scale pretraining phase using unlabeled text data and later refined through post-training techniques such as reinforcement learning with human feedback (RLHF), which aligns the model’s outputs with human preferences and improves instruction-following capabilities ~\citep{achiam2023gpt}. 
+The Generative Pre-trained Transformer (GPT) is a family of large language models designed to understand and generate natural language. GPT models are based on the Transformer architecture and are trained on large text corpora to learn statistical patterns in language. During training, the model predicts the next token in a sequence given the previous context, enabling it to generate coherent text. Because of this autoregressive formulation, GPT can perform many language tasks without task-specific architectures \citep{achiam2023gpt}.
 
-Due to their ability to generate and interpret language, GPT models can be applied to a broad range of natural language processing tasks. These include text generation, question answering, summarization, translation, code generation, and conversational agents. More recent versions of the model also support multimodal inputs and can interact with external tools and systems to perform more complex reasoning tasks. In practical applications, GPT models are frequently used in chatbots, educational tools, research assistance, and software development environments ~\citep{achiam2023gpt}. 
+GPT models use a Transformer architecture with self-attention mechanisms to capture relationships between tokens in a sequence. During training, the model processes large volumes of text and learns representations that capture syntactic, semantic, and contextual information. Training typically includes a large-scale pretraining phase using unlabeled text, followed by post-training methods such as reinforcement learning from human feedback (RLHF), which improves instruction following and aligns outputs with human preferences \citep{achiam2023gpt}.
 
-Experimental evaluations demonstrate that modern GPT models achieve strong performance across many academic and professional benchmarks (see Figure
-\ref{fig:gpt_results}). For instance, GPT-4 has been shown to outperform previous language models on a wide range of tasks and achieve human-level performance on several standardized exams and professional assessments. Results reported in the study indicate that the model performs competitively across multiple domains, including science, mathematics, law, and general knowledge tests, highlighting the broad capabilities of large-scale language models ~\citep{achiam2023gpt}. 
+Due to their ability to process and generate language, GPT models can be applied to many natural language processing tasks, including text generation, question answering, summarization, translation, code generation, and conversational systems. Recent versions also support multimodal inputs and interaction with external tools, enabling more complex reasoning and task execution \citep{achiam2023gpt}.
+
+Experimental evaluations show that modern GPT models achieve strong performance across many benchmarks (see Figure \ref{fig:gpt_results}). For example, GPT-4 outperforms earlier language models on several tasks and reaches human-level performance on some standardized exams and professional assessments. Reported results show competitive performance across domains such as science, mathematics, law, and general knowledge \citep{achiam2023gpt}.
 
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/gpt.png}
-\caption{Performance of GPT-4 across multiple academic benchmarks as reported by the authors. The results show that GPT-4 consistently outperforms previous language models and achieves competitive performance compared with state-of-the-art systems trained specifically for individual benchmarks, demonstrating strong few-shot learning capabilities across diverse evaluation tasks.}
+\caption{Performance of GPT-4 across multiple academic benchmarks as reported by the authors.}
 \legend{Source: \citet{achiam2023gpt}.}
 \label{fig:gpt_results}
 \end{figure*}
 
 \subsection{Gemini}
-Gemini is a family of large multimodal artificial intelligence models developed to advance capabilities in reasoning, language understanding, and cross-modal processing. Unlike traditional language models that primarily operate on text, Gemini was designed from the outset as a natively multimodal system, capable of processing and reasoning over multiple types of data, including text, images, audio, and video \citet{team2023gemini}. The model family includes different variants—Gemini Ultra, Gemini Pro, and Gemini Nano—which are optimized for different levels of computational capability and deployment environments. Ultra represents the most powerful model for complex reasoning and multimodal tasks, Pro is optimized for performance and efficiency across a wide range of applications, and Nano is designed for on-device deployment in resource-constrained environments. 
 
-The architecture of Gemini is based on an enhanced decoder-only Transformer model, incorporating architectural improvements and optimization techniques to enable stable large-scale training. The models support long context windows of up to 32,000 tokens and use efficient attention mechanisms such as multi-query attention to improve computational efficiency. A key innovation of Gemini is its ability to process interleaved multimodal inputs, meaning that text, images, audio signals, and video frames can be provided within the same sequence of tokens (see Figure
-\ref{fig:gemini_architecture}). Visual and video information are encoded as sequences of image frames within the context window, while audio signals are represented using features extracted from speech models. This design allows Gemini to perform complex reasoning tasks that require integrating information from multiple modalities within a single unified framework \citet{team2023gemini}. 
+Gemini is a family of multimodal artificial intelligence models designed to support reasoning, language understanding, and cross-modal processing. Unlike traditional language models that operate primarily on text, Gemini was designed as a multimodal system capable of processing text, images, audio, and video \citep{team2023gemini}. The model family includes three main variants: Gemini Ultra, Gemini Pro, and Gemini Nano. These versions target different computational environments, ranging from high-performance systems to on-device deployment.
+
+The Gemini architecture is based on an enhanced decoder-only Transformer with improvements for stable large-scale training. The models support long context windows of up to 32,000 tokens and use attention optimizations such as multi-query attention to improve efficiency. A key feature is the ability to process interleaved multimodal inputs, meaning that text, images, audio, and video can appear within the same sequence (see Figure \ref{fig:gemini_architecture}). Visual and video inputs are represented as sequences of frames, while audio inputs are encoded using speech representations. This design allows the model to integrate information from multiple modalities within a single framework \citep{team2023gemini}.
 
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/gemini.png}
-\caption{Illustration of the multimodal reasoning capabilities of Gemini models. According to the authors, Gemini can process sequences containing interleaved text, images, audio, and video, enabling the model to generate responses that combine textual and visual information within a unified multimodal framework}
+\caption{Illustration of the multimodal reasoning capabilities of Gemini models.}
 \legend{Source: \citet{team2023gemini}.}
 \label{fig:gemini_architecture}
 \end{figure*}
 
-Gemini models are trained on a large-scale multimodal and multilingual dataset composed of web documents, books, code repositories, images, audio, and video data. The training process involves extensive data filtering and safety mechanisms to ensure quality and remove harmful content. During pre-training, the model learns representations that capture relationships across different modalities, enabling it to perform tasks such as multimodal reasoning, content generation, summarization, and information extraction \citet{team2023gemini}. After pre-training, additional post-training procedures—including instruction tuning and reinforcement learning from human feedback—are applied to improve the model's ability to follow instructions and generate responses aligned with human expectations. 
+Gemini models are trained on large multimodal and multilingual datasets that include web documents, books, code repositories, images, audio, and video. The training pipeline includes filtering procedures and safety mechanisms to improve data quality. During pretraining, the model learns representations that capture relationships across modalities, enabling tasks such as multimodal reasoning, content generation, summarization, and information extraction \citep{team2023gemini}. After pretraining, additional stages such as instruction tuning and reinforcement learning from human feedback improve instruction following and output quality.
 
-Experimental results demonstrate that Gemini models achieve state-of-the-art performance across multiple benchmarks, including tasks involving reasoning, mathematics, coding, and multimodal understanding. In particular, Gemini Ultra surpasses human-expert performance on the MMLU benchmark, achieving an accuracy of approximately 90\%, and sets new state-of-the-art results across a wide range of text, image, audio, and video evaluation tasks. The model also shows strong performance in mathematical reasoning benchmarks such as GSM8K and coding benchmarks like HumanEval. These results highlight Gemini's ability to function as a general-purpose multimodal model capable of solving complex problems and enabling applications in areas such as education, software development, accessibility technologies, and intelligent assistants \citet{team2023gemini}.
+Experimental results indicate that Gemini models perform well across benchmarks involving reasoning, mathematics, coding, and multimodal understanding. Gemini Ultra, for example, achieves approximately 90\% accuracy on the MMLU benchmark and reports strong performance on tasks involving text, images, audio, and video. The model also performs well on mathematical benchmarks such as GSM8K and coding benchmarks such as HumanEval \citep{team2023gemini}. These results show the potential of multimodal foundation models for applications in areas including education, software development, accessibility, and intelligent assistants.
 
 \section{Image preprocessing techniques}
-Image preprocessing is a fundamental step in computer vision pipelines, as raw images often need to be transformed into a standardized format before being used to train machine learning models. These preprocessing operations ensure that the data are compatible with the input requirements of neural network architectures and that the training process remains stable and efficient. Common preprocessing procedures include operations such as image resizing, normalization of pixel values, and data augmentation. Together, these techniques help prepare image datasets for effective learning by reducing variability caused by acquisition conditions while preserving relevant visual information.
+Image preprocessing is an important step in computer vision pipelines because raw images often need to be converted into a standardized format before training machine learning models. These operations ensure that the data meet the input requirements of neural network architectures and that training remains stable. Common preprocessing steps include image resizing, pixel normalization, and data augmentation. Together, these techniques prepare image datasets for learning by reducing variability caused by acquisition conditions while preserving relevant visual information.
 
-One of the most common preprocessing steps is normalization, which consists of scaling the pixel intensity values to a standardized numerical range. Image pixel values are typically represented in the range ([0, 255]), and normalization transforms these values to smaller intervals such as ([0, 1]) or ([-1, 1]). In deep learning pipelines, it is also common to standardize images using the mean and standard deviation computed from the training dataset or from widely used datasets such as ImageNet. This procedure helps stabilize gradient updates during optimization and often accelerates the convergence of training algorithms by ensuring that input features have comparable numerical scales \citep{goodfellow2016deep}.
+Normalization is one of the most common preprocessing steps. It consists of scaling pixel intensity values to a standardized numerical range. Pixel values are typically represented in the range [0, 255], and normalization converts them to smaller ranges such as [0, 1] or [-1, 1]. In deep learning pipelines, images are often further standardized using the mean and standard deviation computed from the training dataset or from reference datasets such as ImageNet. This process helps stabilize gradient updates during optimization and can accelerate training by ensuring that input features have comparable numerical scales \citep{goodfellow2016deep}.
 
-Another important preprocessing operation is image resizing, which adjusts the spatial resolution of images to match the input dimensions expected by the model architecture \citep{goodfellow2016deep}. Many convolutional neural networks require fixed-size inputs, such as (224 X 224) or (299 X 299) pixels, which makes resizing a necessary step when working with datasets containing images of varying resolutions. Resizing can be performed using interpolation techniques that preserve the overall structure of the visual content while adapting it to the required size. Although some modern architectures are capable of processing images with variable spatial dimensions, resizing remains widely used to standardize inputs and optimize computational efficiency during training and inference.
+Another common preprocessing operation is image resizing, which adjusts the spatial resolution of images to match the input dimensions required by the model architecture \citep{goodfellow2016deep}. Many convolutional neural networks require fixed-size inputs, such as 224 × 224 or 299 × 299 pixels, making resizing necessary when datasets contain images with different resolutions. Resizing is typically performed using interpolation methods that preserve the overall visual structure while adapting the image to the required size. Although some modern architectures can process images with variable spatial dimensions, resizing is still widely used to standardize inputs and improve computational efficiency during training and inference.
 
-Data augmentation is another critical preprocessing technique that aims to artificially increase the diversity of the training dataset by applying controlled transformations to existing images (see Figure \ref{fig:data-augmentation}). These transformations may include horizontal or vertical flipping, rotations, random cropping, translations, and adjustments to color properties such as brightness, contrast, and saturation \citep{maharana2022review, shorten2019survey}. By exposing the model to multiple variations of the same image, data augmentation helps reduce overfitting and improves the ability of the model to generalize to unseen data. However, designing an effective augmentation pipeline can be challenging, as the choice of transformations and their parameters must be consistent with the characteristics of the dataset and the target task. Excessive or inappropriate transformations may distort relevant visual features or introduce unrealistic patterns, potentially degrading model performance. Consequently, careful selection and tuning of preprocessing strategies are essential to achieve robust and reliable results in computer vision applications \citep{maharana2022review}.
+Data augmentation is another widely used preprocessing technique that increases the diversity of the training dataset by applying controlled transformations to existing images (see Figure \ref{fig:data-augmentation}). These transformations may include horizontal or vertical flipping, rotations, random cropping, translations, and adjustments to color properties such as brightness, contrast, and saturation \citep{maharana2022review, shorten2019survey}. By exposing the model to multiple variations of the same image, data augmentation reduces overfitting and improves generalization to unseen data. However, designing an effective augmentation pipeline requires care. The choice of transformations and their parameters must be consistent with the dataset and the target task. Inappropriate transformations may distort relevant visual features or introduce unrealistic patterns, which can degrade model performance. Therefore, preprocessing strategies must be selected and tuned carefully to ensure reliable results in computer vision applications \citep{maharana2022review}.
 
 \begin{figure*}[!ht]
 \centering
@@ -99,121 +111,131 @@ Data augmentation is another critical preprocessing technique that aims to artif
 \end{figure*}
 
 \section{Training techniques}
-The training of deep neural networks represents a high-dimensional, non-convex optimization problem where the objective is to minimize a loss function $\mathcal{L}(\theta)$ relative to a set of parameters $\theta \in \mathbb{R}^d$. This process is not merely a computational exercise in gradient descent but a complex interplay between algorithmic stability, numerical convergence, and the ultimate goal of statistical generalization \cite{goodfellow2016deep}.
+The training of deep neural networks is a high-dimensional, non-convex optimization problem in which the objective is to minimize a loss function $\mathcal{L}(\theta)$ with respect to parameters $\theta \in \mathbb{R}^d$. This process involves not only gradient-based optimization but also considerations related to algorithmic stability, numerical convergence, and statistical generalization \cite{goodfellow2016deep}.
 
 \subsection{The Optimization Landscape: SGD vs. Adaptive Methods}
 
-At the core of neural network training is the optimization landscape, a manifold characterized by saddle points, plateaus, and local minima. The choice of optimizer determines how the trajectory of $\theta$ navigates this surface.
+Neural network training occurs within an optimization landscape that includes saddle points, plateaus, and local minima. The choice of optimizer determines how the parameter trajectory $\theta$ moves across this surface.
 
 \subsubsection{Stochastic Gradient Descent (SGD)}
-SGD remains the foundational algorithm, updating parameters via:
+
+Stochastic Gradient Descent (SGD) updates parameters according to:
 \begin{equation}
 \theta_{t+1} = \theta_t - \eta \nabla \mathcal{L}(\theta_t; x^{(i)}, y^{(i)})
 \end{equation}
-where $\eta$ is the learning rate. While computationally efficient, vanilla SGD often struggles with "ravines" where the surface curves much more steeply in one dimension than another. The introduction of momentum mitigates this by accumulating a velocity vector, effectively smoothing the path and accelerating convergence in consistent directions.
+where $\eta$ is the learning rate. Although computationally efficient, SGD can progress slowly in regions where the loss surface has different curvature along different dimensions. Momentum addresses this limitation by accumulating a velocity vector that smooths parameter updates and accelerates convergence along consistent directions.
 
 \subsubsection{Adaptive Methods: Adam and Beyond}
-Adaptive optimizers, most notably Adam (Adaptive Moment Estimation), maintain per-parameter learning rates. Adam computes individual updates based on estimates of the first and second moments of the gradients:
+
+Adaptive optimizers, such as Adam (Adaptive Moment Estimation), maintain parameter-specific learning rates. Adam updates parameters using estimates of the first and second moments of the gradients:
 \begin{align}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1)g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2)g_t^2
 \end{align}
-While Adam typically exhibits faster initial convergence, empirical evidence suggests that SGD with momentum often leads to better generalization on the test set \cite{wilson2018marginalvalueadaptivegradient}.
+Adam often converges faster during early training. However, empirical studies show that SGD with momentum can achieve better generalization on test data \cite{wilson2018marginalvalueadaptivegradient}.
 
 \subsection{Dynamic Training Protocols}
 
-Optimization is rarely a static process. To navigate the loss surface effectively, researchers employ dynamic protocols that adjust the training regime in real-time.
+Optimization strategies often change during training to improve convergence.
 
 \begin{itemize}
-    \item \textbf{Learning Rate (LR) Scheduling:} A static $\eta$ is often suboptimal. Early training requires a high $\eta$ to escape local suboptimality, while later stages require a decaying $\eta$ to settle into the global minimum.
-    \item \textbf{Early Stopping:} This serves as a temporal regularizer. By monitoring the loss on a disjoint validation set, training is halted once the validation error begins to diverge from the training error, preventing the model from memorizing noise.
+    \item \textbf{Learning Rate Scheduling:} A fixed learning rate $\eta$ is often suboptimal. Higher values early in training help the optimizer move away from poor local minima, while gradually reducing $\eta$ later allows the model to converge more precisely.
+    \item \textbf{Early Stopping:} Early stopping acts as a form of regularization. Training is stopped when validation loss begins to diverge from training loss, which helps prevent overfitting.
 \end{itemize}
 
-\subsection{Regularization and the Bias-Variance Tradeoff}
+\subsection{Regularization and the Bias–Variance Tradeoff}
 
-The fundamental challenge in deep learning is the bias-variance tradeoff: balancing the model's ability to fit the training data against its ability to perform on unseen data.
+A central challenge in deep learning is balancing the model's ability to fit the training data with its ability to generalize to unseen data.
 
 \subsubsection{Weight Decay ($L_2$ Regularization)}
-Weight decay modifies the objective function by adding a penalty term proportional to the square of the magnitude of the weights:
+
+Weight decay modifies the objective function by adding a penalty proportional to the squared magnitude of the parameters:
 \begin{equation}
 \mathcal{L}_{reg} = \mathcal{L} + \lambda \sum \theta^2
 \end{equation}
-This forces the optimization process to prefer smaller weights, resulting in a smoother mapping function.
+This encourages smaller parameter values and leads to smoother model functions.
 
 \subsubsection{Dropout}
-Dropout is a stochastic regularization technique where, during each training iteration, a fraction $p$ of neurons is randomly set to zero. This prevents co-adaptation, where neurons rely on the presence of specific other neurons to correct their errors \cite{srivastava2014dropout}.
+
+Dropout is a stochastic regularization technique in which, during each training iteration, a fraction $p$ of neurons is randomly set to zero. This reduces co-adaptation between neurons and improves generalization \cite{srivastava2014dropout}.
 
 \subsection{Practical Challenges and Modern Solutions}
 
 \begin{itemize}
-    \item \textbf{Vanishing and Exploding Gradients:} In deep networks, backpropagation can cause gradients to vanish or explode. Modern solutions include residual connections (ResNets) and gradient clipping.
-    \item \textbf{Internal Covariate Shift:} As parameters change, the distribution of inputs to subsequent layers shifts. Batch Normalization (BN) addresses this by normalizing activations to have zero mean and unit variance within a mini-batch \cite{ioffe2015batch}.
+    \item \textbf{Vanishing and Exploding Gradients:} In deep networks, gradients may become very small or very large during backpropagation. Solutions include residual connections (ResNets) and gradient clipping.
+    \item \textbf{Internal Covariate Shift:} As parameters change during training, the distribution of inputs to later layers also changes. Batch Normalization (BN) addresses this by normalizing activations to zero mean and unit variance within each mini-batch \cite{ioffe2015batch}.
 \end{itemize}
 
 \subsection{Mathematical Analysis of Adam's Convergence}
 
-The convergence of Adam is analyzed through Regret Analysis. For a sequence of convex loss functions $f_1, \dots, f_T$, the regret $R(T)$ is bounded by:
+The convergence of Adam can be studied using regret analysis. For a sequence of convex loss functions $f_1, \dots, f_T$, the regret $R(T)$ is defined as:
 \begin{equation}
 R(T) = \sum_{t=1}^T [f_t(\theta_t) - f_t(\theta^*)] \leq O(\sqrt{T})
 \end{equation}
-However, it is critical to note that Adam can fail to converge in specific settings where the effective learning rate increases over time \cite{reddi2019convergenceadam}. The AMSGrad variant addresses this by ensuring $\hat{v}_t = \max(\hat{v}_{t-1}, v_t)$.
+
+However, Adam may fail to converge in certain situations where the effective learning rate increases over time \cite{reddi2019convergenceadam}. The AMSGrad variant addresses this issue by enforcing $\hat{v}_t = \max(\hat{v}_{t-1}, v_t)$, which prevents the second-moment estimate from decreasing and improves convergence guarantees.
 
 \section{Evaluation Metrics}
-
-The rigorous assessment of model performance is a cornerstone of deep learning research. Relying on a single scalar value often fails to capture the nuances of model behavior, particularly in complex high-dimensional feature spaces. This section details the mathematical and conceptual frameworks for evaluating classification performance, with a specific focus on metrics robust to class distribution shifts.
+The evaluation of model performance is an essential component of deep learning research. A single scalar metric often does not capture all aspects of model behavior, especially in high-dimensional problems. This section presents the main mathematical and conceptual tools used to evaluate classification models, with emphasis on metrics that remain informative under class imbalance.
 
 \subsection{Classification Metrics}
 
-Classification performance is typically derived from the \textit{Confusion Matrix}, which partitions predictions into True Positives ($TP$), True Negatives ($TN$), False Positives ($FP$), and False Negatives ($FN$). While these counts provide a raw view of performance, normalized metrics are required for comparative analysis.
+Classification performance is typically summarized using a \textit{confusion matrix}, which divides predictions into True Positives ($TP$), True Negatives ($TN$), False Positives ($FP$), and False Negatives ($FN$). These counts provide a basic description of model predictions, but normalized metrics are required for meaningful comparison between models.
 
 \subsubsection{Accuracy}
-Accuracy represents the ratio of correctly predicted observations to the total observations:
+
+Accuracy measures the proportion of correctly classified observations:
 \begin{equation}
 \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
 \end{equation}
-Despite its ubiquity, accuracy is notoriously misleading in the presence of \textbf{class imbalance}. In a dataset where 99\% of samples belong to the majority class, a "naive" classifier that always predicts the majority class achieves 99\% accuracy while failing to learn any discriminative features of the minority class.
+
+Although widely used, accuracy can be misleading in datasets with strong class imbalance. For example, if 99\% of samples belong to the majority class, a classifier that always predicts that class achieves 99\% accuracy while failing to identify minority instances.
 
 \subsubsection{Precision, Recall, and the F1-Score}
-To address the limitations of accuracy, we employ metrics that isolate the performance on the positive (often minority) class:
+
+To address the limitations of accuracy, additional metrics evaluate performance on the positive class:
 
 \begin{itemize}
-    \item \textbf{Precision (Positive Predictive Value):} Measures the fidelity of the model's positive predictions. It is the ratio of correctly predicted positive observations to the total predicted positives.
+    \item \textbf{Precision (Positive Predictive Value):} Measures the proportion of predicted positive instances that are correct.
     \begin{equation}
     \text{Precision} = \frac{TP}{TP + FP}
     \end{equation}
     
-    \item \textbf{Recall (Sensitivity):} Measures the model's ability to find all relevant cases within a dataset. 
+    \item \textbf{Recall (Sensitivity):} Measures the proportion of actual positive instances correctly identified by the model.
     \begin{equation}
     \text{Recall} = \frac{TP}{TP + FN}
     \end{equation}
     
-    \item \textbf{F1-Score:} The harmonic mean of Precision and Recall. Unlike the arithmetic mean, the harmonic mean penalizes extreme values, ensuring that a high F1-score requires both high precision and high recall.
+    \item \textbf{F1-Score:} The harmonic mean of precision and recall. This metric balances both measures and penalizes large differences between them.
     \begin{equation}
     F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
     \end{equation}
 \end{itemize}
 
-In doctoral research, the choice between these depends on the \textbf{cost of error}. In medical diagnosis, high Recall is often prioritized to avoid missing true cases (False Negatives), whereas in spam detection, high Precision is favored to avoid misclassifying legitimate emails (False Positives).
+The choice among these metrics depends on the cost of different types of errors. For example, medical diagnosis often prioritizes recall to reduce missed cases (false negatives), while spam detection may prioritize precision to avoid misclassifying legitimate messages.
 
-\subsection{Precision-Recall Curve}
+\subsection{Precision–Recall Curve}
 
-In many deep learning architectures, the final layer outputs a probability distribution rather than a discrete label. The conversion to a label depends on a \textit{classification threshold} $\tau$ (conventionally set at 0.5). However, the optimal $\tau$ is rarely static.
+Many deep learning models output probabilities rather than discrete labels. A final prediction is obtained by applying a classification threshold $\tau$ (commonly set to 0.5). However, the optimal threshold depends on the application.
 
-\subsubsection{The Threshold Trade-off}
-The Precision-Recall (PR) curve is constructed by plotting Precision against Recall at every possible threshold $\tau \in [0, 1]$. As the threshold decreases, the model becomes more "permissive" increasing Recall but typically decreasing Precision as more False Positives are introduced.
+\subsubsection{Threshold Trade-off}
 
+The Precision–Recall (PR) curve plots precision against recall for different threshold values $\tau \in [0,1]$. As the threshold decreases, the model predicts more positive cases. This usually increases recall but may reduce precision because more false positives are introduced.
 
+\subsubsection{Area Under the Precision–Recall Curve (AUPRC)}
 
-\subsubsection{Area Under the Precision-Recall Curve (AUPRC)}
-The AUPRC (or Average Precision) provides a single-figure summary of the PR curve:
+The AUPRC, also known as Average Precision, summarizes the PR curve with a single value:
 \begin{equation}
 \text{AUPRC} = \sum_{n} (R_n - R_{n-1}) P_n
 \end{equation}
-where $P_n$ and $R_n$ are the precision and recall at the $n$-th threshold. 
+where $P_n$ and $R_n$ represent precision and recall at the $n$-th threshold.
 
-\subsubsection{PR vs. ROC in Imbalanced Scenarios}
-While the Receiver Operating Characteristic (ROC) curve is frequently used, it can present an overly optimistic view of model performance when the negative class is overwhelming. This is because the False Positive Rate ($FP / (FP+TN)$) remains small due to the large $TN$ denominator. The PR curve, by contrast, does not include $TN$ in its primary axes, making it a far more sensitive and honest indicator of performance for imbalanced tasks common in anomaly detection and rare-event prediction.
+\subsubsection{PR vs.\ ROC in Imbalanced Scenarios}
+
+The Receiver Operating Characteristic (ROC) curve is commonly used for classification evaluation, but it can be less informative when classes are highly imbalanced. In such cases, the False Positive Rate ($FP/(FP+TN)$) may remain small due to the large number of true negatives. The PR curve does not include $TN$ in its main axes, which makes it more informative for tasks involving rare events or anomaly detection.
 
 \section{Final Remarks}
 
-This chapter established the theoretical and technical frameworks—ranging from foundational deep learning to multimodal systems such as CLIP, BLIP, and Gemini—necessary for robust wildlife classification. The transition from unimodal computer vision to vision-language models demonstrates how semantic alignment between text and imagery enhances model generalization. Furthermore, the analysis of optimization, regularization, and preprocessing highlights the importance of algorithmic stability when processing high-variance visual data from outdoor environments. The focus on evaluation metrics robust to class imbalance, specifically the Precision-Recall curve and AUPRC, directly addresses the statistical underrepresentation of rare species in camera trap datasets. These fundamentals provide the theoretical justification and practical tools for the research problem. Ultimately, the multimodal reasoning and training protocols described here inform the methodological choices in subsequent chapters, ensuring that the resulting species classification approaches are technically sound and optimized for automated biodiversity monitoring.
+This chapter presented the theoretical and technical foundations required for wildlife classification, covering topics from basic deep learning concepts to multimodal systems such as CLIP, BLIP, and Gemini. The transition from unimodal computer vision to vision–language models illustrates how aligning textual and visual representations can improve model generalization. Furthermore, the discussion on optimization, regularization, and preprocessing highlights the importance of stable training procedures when working with highly variable external images.
+
+The chapter also emphasized evaluation metrics suited to imbalanced datasets, particularly the Precision–Recall curve and the Area Under the Precision–Recall Curve (AUPRC), which are relevant for datasets where rare species are underrepresented. Together, these concepts provide the theoretical basis and methodological tools for the research problem. The multimodal modeling strategies and training protocols described here inform the methodological choices in the following chapters and support the development of automated species classification systems for biodiversity monitoring.

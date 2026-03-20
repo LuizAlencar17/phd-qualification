@@ -2,6 +2,7 @@
 # LaTeX / latexmk artifacts
 # =========================
 
+
 # Core build artifacts
 *.aux
 *.log
@@ -56,6 +57,7 @@ latex/*.pdf
 # =========================
 
 .vscode/
+prompts/
 .idea/
 *~
 *.swp

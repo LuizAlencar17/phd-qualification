@@ -1,0 +1,264 @@
+\chapter{Advancing Biodiversity Monitoring by Integrating Multimodal AI Models into Camera Trap Workflow}\label{cap:experiment_01}
+
+\section{Introduction}
+
+Biodiversity monitoring depends on the efficient analysis of large volumes of ecological data, and camera traps have become a central non-invasive instrument for this purpose. By continuously recording wildlife activity, camera traps support the study of species distribution, abundance, and behavior in natural environments \citep{tan2022animal,guo2024automatic}. Despite their utility, these datasets present substantial processing challenges, including strong class imbalance, a large proportion of empty images triggered by environmental factors, poor visual quality, and species labeling errors \citep{cunha2023bag,swanson2015snapshot,iannarilli2021evaluating,alencar2024zero}. Within the camera-trap workflow, three tasks are particularly relevant: filtering empty images, classifying animal species, and identifying animal behavior.
+
+Previous work has shown that supervised deep learning methods, especially convolutional neural networks, can achieve good performance in some camera-trap tasks. However, these methods generally require extensive labeled datasets and may present limited robustness under challenging environmental conditions, such as dense vegetation and low illumination \citep{cunha2021filtering,binta2023animal,vecvanags2022ungulate,alencar2023context,velez2023evaluation}. In this context, multimodal large language models (MLLMs) offer an alternative based on the integration of visual and textual information, with the additional advantage of supporting zero-shot and few-shot learning settings \citep{li2022blip,radford2021learning,liu2024improved}.
+
+The experiment reported in the article investigates the use of four state-of-the-art multimodal models---CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp---in three core tasks of the camera-trap workflow: empty-image filtering, species classification, and behavior identification. The study compares zero-shot and few-shot strategies and, in the case of behavior recognition, also examines the effect of single-image versus sequence-based inference. According to the article, the work extends previous research by moving from a single-task setting to a multi-task evaluation, incorporating additional models, expanding the data from seasons 1--4 to seasons 1--6 of Snapshot Serengeti, and including class-wise analyses and sequence-based behavioral assessment \citep{alencar2024zero}.
+
+The central problem addressed is therefore whether large-scale MLLMs can effectively support important stages of the camera-trap workflow with limited task-specific supervision. More specifically, the study examines how well these models perform across the three tasks and what differences emerge between zero-shot and few-shot settings. Within the scope of this thesis, the experiment is relevant because it evaluates a unified multimodal approach to automate multiple stages of biodiversity monitoring while preserving the practical constraints of ecological data processing.
+
+\section{Materials and Methods}
+
+\subsection{Dataset and Data Characteristics}
+
+The experiments were based on the Snapshot Serengeti dataset, one of the most comprehensive publicly available camera-trap datasets \citep{swanson2015snapshot}. The data were collected in Serengeti National Park, Tanzania, through motion-activated cameras continuously deployed since 2010. The dataset contains approximately 2.65 million image sequences, totaling about 7.1 million images across seasons 1 to 11. The article also emphasizes the strong imbalance between empty and non-empty images, reporting that approximately 76\% of the images are empty due to non-animal triggers.
+
+Although the full Snapshot Serengeti dataset spans eleven seasons, the experiments in the article used subsets from seasons 1 to 6. This choice was motivated by the need to include multiple models under hardware constraints while preserving data diversity. The data were divided into training, validation, and test subsets. To avoid data leakage and reduce bias, the split was stratified by camera location, ensuring that images from the same location were not distributed across different subsets. This partition strategy follows standard practice in the literature and was intended to evaluate model generalization on unseen camera sites \citep{beery2018recognition,schneider2020three}.
+
+\subsection{Task Definition and Class Organization}
+
+The study investigated three tasks.
+
+The first task was \textit{empty-image filtering}, defined as a binary classification problem in which the model must determine whether an image contains an animal or corresponds to an empty frame.
+
+The second task was \textit{species classification}. In this case, the models were restricted to a predefined set of nine species: hyena, zebra, giraffe, buffalo, gazelle, wildebeest, elephant, lion, and bird. These classes were selected because they were among the most frequent species in the training data. The article states that the empty-image filtering task was intentionally separated from species classification, and that preliminary tests indicated better accuracy than a joint multi-class formulation.
+
+The third task was \textit{behavior identification}, formulated as a three-class problem with the categories moving, eating, and resting. The article justifies this choice by the frequency of these behaviors in labeled camera-trap datasets, by annotation feasibility, and by their practical value for wildlife monitoring. The study evaluated this task under two input conditions: single images and image sequences corresponding to the same camera-trap event. According to the article, the number of images per sequence ranged on average from 3 to 5.
+
+\subsection{Dataset Splits Used in the Experiments}
+
+Table~\ref{tab:dataset_sizes} reproduces the distribution of images per subset and task reported in the article.
+
+\begin{table}[htbp]
+\centering
+\caption{Number of images in each subset used for the three tasks, as reported in the article.}
+\label{tab:dataset_sizes}
+\begin{tabular}{llrrrrrrrrrrrr}
+\hline
+Subset & Category & Animal & Empty & Moving & Resting & Eating & Gazelle & Hyena & Elephant & Lion & Bird & Buffalo & Zebra & Wildebeest & Giraffe \
+\hline
+Val & Filtering & 1538 & 1462 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Val & Behavior & -- & -- & 1033 & 988 & 979 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Val & Species & -- & -- & -- & -- & -- & 350 & 347 & 341 & 334 & 333 & 329 & 323 & 322 & 321 \
+Test & Filtering & 4981 & 5019 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Test & Behavior & -- & -- & 3328 & 3309 & 3363 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Test & Species & -- & -- & -- & -- & -- & 1136 & 1130 & 1127 & 1125 & 1127 & 1136 & 1111 & 1122 & 1103 \
+Train & Filtering & 10114 & 9886 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Train & Behavior & -- & -- & 6586 & 6732 & 6682 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
+Train & Species & -- & -- & -- & -- & -- & 2257 & 2248 & 2245 & 2220 & 2161 & 2248 & 2245 & 2209 & 2203 \
+\hline
+\end{tabular}
+\end{table}
+
+For the filtering task, the training and test sets were approximately balanced between animal and empty classes. For behavior identification, the three categories were also close in size. For species classification, the nine classes were near-balanced in the evaluation partition, while the training partition presented only small differences across species.
+
+\subsection{Models Evaluated}
+
+The article evaluated four multimodal models: Gemini, GPT, BLIP, and CLIP.
+
+Gemini was described as a multimodal model capable of processing text and images, but its use in the study was restricted to zero-shot learning because it is closed-source and local fine-tuning on the experimental dataset was not feasible. The same limitation applied to GPT-4o. Although GPT supports in-context learning through prompt conditioning, the article states that incorporating examples would substantially increase token usage, inference cost, and scalability limitations. For this reason, GPT was also evaluated only in zero-shot mode.
+
+BLIP was selected because it supports both zero-shot and few-shot use, including in-context learning with sample prompts and responses. CLIP was included due to its contrastive image-text formulation and its ability to operate in zero-shot mode through similarity matching between images and class descriptions. In addition, CLIP and BLIP underwent light local fine-tuning in the few-shot setting. For CLIP, the contrastive loss was optimized using a small subset of labeled examples per class. BLIP was also fine-tuned using the same labeled samples. In both cases, the number of iterations and samples was intentionally restricted in order to remain consistent with the few-shot learning paradigm.
+
+\subsection{Zero-shot and Few-shot Settings}
+
+In the zero-shot setting, the models were evaluated without prior task-specific exposure to the dataset. CLIP matched images to predefined text descriptions, while Gemini, GPT, and BLIP received task-specific prompts. Since Gemini and GPT are closed models, they were evaluated only in zero-shot mode.
+
+In the few-shot setting, models received a small subset of labeled examples before evaluation. CLIP was lightly fine-tuned with a few examples per class. BLIP used sample prompts and corresponding labels for in-context adaptation, and the article also reports weight updates for BLIP under the same few-shot setup used for CLIP. The authors explicitly note that the comparison between zero-shot and few-shot learning is not fully symmetrical across all models because only the open models, CLIP and BLIP, allowed local adaptation.
+
+\subsection{Prompt Design and Inference Procedure}
+
+The prompts were tailored to the operational mechanism of each model. For Gemini, GPT, and BLIP, direct classification prompts restricted the output space to predefined task labels. CLIP, in contrast, relied on image-text similarity using class-specific textual descriptions.
+
+For empty-image filtering, Gemini, GPT, and BLIP received the prompt:
+\begin{quote}
+`A photo of an animal: 0) no and 1) yes.''
+\end{quote}
+CLIP matched images to descriptions such as `a photo of a background'' and ``a photo of an animal.''
+
+For species classification, Gemini, GPT, and BLIP received:
+\begin{quote}
+`Identify the species of the animal. Respond only with one of the following options: 0) hyena, 1) zebra, 2) giraffe, 3) buffalo, 4) gazelle, 5) wildebeest, 6) elephant, 7) lion, 8) bird.''
+\end{quote}
+CLIP used descriptions such as `a photo of a giraffe,'' ``a photo of a lion,'' and analogous texts for the remaining classes.
+
+For behavior identification, Gemini, GPT, and BLIP received:
+\begin{quote}
+`Identify the behavior the animals are performing. Respond only with one of the following options: 0) moving, 1) eating, 2) resting.''
+\end{quote}
+CLIP used descriptions such as `a photo of an animal moving,'' `a photo of an animal eating,'' and `a photo of an animal resting.''
+
+The article reports that several prompt variants were tested during validation, including alternative phrasings and different levels of specificity. The final prompts were selected according to their performance on training and validation data only, in order to avoid adaptation to the test set. All GPT and Gemini inferences were executed through the official APIs, specifically the OpenAI API for GPT-4o and the Google AI Studio API for Gemini 2.0 flash-exp. Outputs were automatically parsed to preserve reproducibility and avoid manual intervention.
+
+\subsection{Evaluation Metrics and Statistical Reporting}
+
+Model performance was evaluated using accuracy, precision, recall, and F1-score. In addition, the article reports 95\% binomial confidence intervals for accuracy using the exact Clopper--Pearson method or an equivalent normal approximation. According to the authors, these intervals quantify uncertainty in the observed accuracy and support comparisons between models; non-overlapping intervals were interpreted as evidence of significant performance differences.
+
+\section{Experiments and Results}
+
+\subsection{Overall Performance Across Tasks}
+
+Table~\ref{tab:overall_results} summarizes the results reported in the article for the three investigated tasks.
+
+\begin{table}[htbp]
+\centering
+\caption{Performance of the evaluated models on the three tasks, as reported in the article.}
+\label{tab:overall_results}
+\begin{tabular}{llccccc}
+\hline
+Task & Model & Precision & Recall & F1-score & Accuracy & CI95 \
+\hline
+Animal & BLIP-FewShot & 0.9100 & 0.9100 & 0.9100 & 0.9100 & [0.904, 0.915] \
+Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \
+Animal & Gemini & 0.5695 & 0.5551 & 0.5536 & 0.8322 & [0.825, 0.839] \
+Animal & CLIP & 0.8150 & 0.7983 & 0.7959 & 0.7987 & [0.791, 0.806] \
+Animal & CLIP-FewShot & 0.7594 & 0.7589 & 0.7587 & 0.7588 & [0.750, 0.767] \
+Animal & BLIP & 0.0137 & 0.0035 & 0.0055 & 0.0761 & [0.071, 0.081] \
+\hline
+Behavior & BLIP-FewShot-Seq & 0.7640 & 0.7555 & 0.7567 & 0.7557 & [0.747, 0.764] \
+Behavior & BLIP-FewShot & 0.7041 & 0.7011 & 0.7011 & 0.7014 & [0.692, 0.710] \
+Behavior & Gemini-Seq & 0.5002 & 0.4616 & 0.4336 & 0.6171 & [0.608, 0.627] \
+Behavior & Gemini & 0.4533 & 0.4312 & 0.3940 & 0.5766 & [0.567, 0.586] \
+Behavior & CLIP-FewShot-Seq & 0.5222 & 0.5007 & 0.5016 & 0.5006 & [0.491, 0.510] \
+Behavior & GPT & 0.6339 & 0.4813 & 0.4195 & 0.4819 & [0.472, 0.492] \
+Behavior & CLIP-FewShot & 0.4875 & 0.4824 & 0.4766 & 0.4817 & [0.472, 0.491] \
+Behavior & GPT-Seq & 0.4886 & 0.4053 & 0.3351 & 0.4058 & [0.396, 0.415] \
+Behavior & CLIP-Seq & 0.3431 & 0.3511 & 0.3397 & 0.3506 & [0.341, 0.360] \
+Behavior & CLIP & 0.3348 & 0.3430 & 0.3321 & 0.3425 & [0.333, 0.352] \
+Behavior & BLIP-Seq & 0.0477 & 0.0290 & 0.0361 & 0.0879 & [0.083, 0.094] \
+Behavior & BLIP & 0.0312 & 0.0002 & 0.0004 & 0.0011 & [0.001, 0.002] \
+\hline
+Species & BLIP-FewShot & 0.7684 & 0.7532 & 0.7556 & 0.7524 & [0.744, 0.761] \
+Species & Gemini & 0.6912 & 0.6837 & 0.6859 & 0.7589 & [0.754, 0.764] \
+Species & GPT & 0.7036 & 0.6190 & 0.6296 & 0.6868 & [0.678, 0.696] \
+Species & CLIP & 0.5352 & 0.4580 & 0.4456 & 0.4558 & [0.446, 0.466] \
+Species & CLIP-FewShot & 0.3359 & 0.3201 & 0.3174 & 0.3202 & [0.311, 0.329] \
+Species & BLIP & 0.1861 & 0.0005 & 0.0011 & 0.0006 & [0.000, 0.001] \
+\hline
+\end{tabular}
+\end{table}
+
+The article highlights that the confidence intervals were generally non-overlapping in the main comparisons, which supports the conclusion that the observed performance gaps are not attributable to random variation in the test set.
+
+\subsection{Empty-image Filtering}
+
+In the empty-image filtering task, BLIP in zero-shot mode obtained the lowest performance, with accuracy of 0.0761, precision of 0.0137, recall of 0.0035, and F1-score of 0.0055. After few-shot adaptation, BLIP-FewShot improved substantially, reaching 0.9100 in all four metrics and achieving the best result reported for this task.
+
+CLIP performed better than BLIP in zero-shot mode, with accuracy of 0.7987 and F1-score of 0.7959. However, its few-shot version did not improve upon this result; CLIP-FewShot obtained accuracy of 0.7588 and F1-score of 0.7587. The article interprets this decrease as evidence that CLIP may have been negatively affected by the few available training samples.
+
+Among the zero-shot models, GPT obtained the highest performance in this task, with accuracy of 0.8566, precision of 0.8693, recall of 0.8562, and F1-score of 0.8552. Gemini also produced valid results, but with lower values than GPT in this binary classification setting.
+
+The article also reports class-wise recall for the two categories involved in filtering, reproduced in Table~\ref{tab:filter_recall}.
+
+\begin{table}[htbp]
+\centering
+\caption{Class-wise recall for empty-image filtering.}
+\label{tab:filter_recall}
+\begin{tabular}{lcc}
+\hline
+Model & Animal & Empty \
+\hline
+BLIP & 0.1528 & 0.0000 \
+BLIP-FewShot & 0.9119 & 0.9081 \
+CLIP & 0.6840 & 0.9125 \
+CLIP-FewShot & 0.7828 & 0.7350 \
+Gemini & 0.9538 & 0.7115 \
+GPT & 0.7635 & 0.9490 \
+\hline
+\end{tabular}
+\end{table}
+
+These values show different trade-offs between empty and non-empty detection. CLIP in zero-shot mode favored the empty class, while Gemini favored the animal class. BLIP-FewShot presented the most balanced recall across the two classes.
+
+\subsection{Species Classification}
+
+In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task.
+
+CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score.
+
+Among the zero-shot models, Gemini achieved the highest accuracy, 0.7589, followed by GPT with 0.6868. GPT obtained slightly higher precision than Gemini, but lower recall, F1-score, and accuracy.
+
+The article also reports species-wise recall values, reproduced in Table~\ref{tab:species_recall}.
+
+\begin{table}[htbp]
+\centering
+\caption{Recall values for the species identification task.}
+\label{tab:species_recall}
+\begin{tabular}{lccccccccc}
+\hline
+Model & Giraffe & Lion & Bird & Zebra & Hyena & Buffalo & Wildebeest & Gazelle & Elephant \
+\hline
+BLIP & 0.0018 & 0.0027 & 0.0000 & 0.0009 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 \
+BLIP-FewShot & 0.8812 & 0.8000 & 0.6690 & 0.6535 & 0.8575 & 0.5669 & 0.7460 & 0.7991 & 0.8058 \
+CLIP & 0.5249 & 0.1893 & 0.1038 & 0.4797 & 0.6018 & 0.2518 & 0.7273 & 0.7051 & 0.5378 \
+CLIP-FewShot & 0.4760 & 0.3547 & 0.1233 & 0.2070 & 0.5283 & 0.2579 & 0.3556 & 0.2502 & 0.3277 \
+Gemini & 0.8821 & 0.8107 & 0.6291 & 0.7795 & 0.7469 & 0.7685 & 0.6123 & 0.7758 & 0.8319 \
+GPT & 0.8368 & 0.5289 & 0.9442 & 0.7525 & 0.9442 & 0.7130 & 0.4991 & 0.7535 & 0.7582 \
+\hline
+\end{tabular}
+\end{table}
+
+The class-wise analysis reported in the article indicates that giraffe, hyena, and elephant were among the easiest species for the evaluated models. BLIP-FewShot and Gemini both reached recall above 0.88 for giraffe, while GPT reached 0.9442 for hyena. The bird class showed strong contrast among models, with GPT reaching 0.9442 recall and CLIP remaining much lower.
+
+\subsection{Behavior Identification}
+
+Behavior identification was evaluated both with single images and with image sequences. In zero-shot mode with single images, BLIP again presented the lowest performance, with accuracy of 0.0011 and F1-score of 0.0004. Using sequences without few-shot adaptation yielded only a limited gain for BLIP-Seq, which reached accuracy of 0.0879 and F1-score of 0.0361.
+
+With few-shot learning, however, BLIP improved substantially. BLIP-FewShot obtained accuracy of 0.7014 and F1-score of 0.7011. When image sequences were added, BLIP-FewShot-Seq achieved the best performance reported for this task, with accuracy of 0.7557 and F1-score of 0.7567. The article interprets this result as evidence that temporal context can support behavior recognition when combined with few-shot adaptation.
+
+CLIP in zero-shot mode obtained accuracy of 0.3425 and F1-score of 0.3321. Sequence-based zero-shot inference produced very similar values, with CLIP-Seq reaching 0.3506 accuracy and 0.3397 F1-score. In this task, however, few-shot learning improved CLIP: CLIP-FewShot reached 0.4817 accuracy and CLIP-FewShot-Seq reached 0.5006.
+
+Gemini performed better than CLIP and BLIP in zero-shot mode for single-image behavior classification, with accuracy of 0.5766. The use of sequences further increased Gemini's performance to 0.6171. GPT behaved differently: while GPT achieved 0.4819 accuracy with single images, GPT-Seq dropped to 0.4058 when sequences were used. According to the article, this result indicates that temporal context does not improve all models uniformly.
+
+The class-wise recall values for behavior identification are reproduced in Table~\ref{tab:behavior_recall}.
+
+\begin{table}[htbp]
+\centering
+\caption{Recall values for the behavior identification task.}
+\label{tab:behavior_recall}
+\begin{tabular}{lccc}
+\hline
+Model & Resting & Eating & Moving \
+\hline
+BLIP & 0.0000 & 0.0000 & 0.0033 \
+BLIP-FewShot & 0.6706 & 0.7707 & 0.6620 \
+BLIP-FewShot-Seq & 0.7232 & 0.8040 & 0.7392 \
+BLIP-Seq & 0.0000 & 0.2614 & 0.0000 \
+CLIP & 0.3497 & 0.1909 & 0.4886 \
+CLIP-FewShot & 0.5748 & 0.3289 & 0.5436 \
+CLIP-FewShot-Seq & 0.4584 & 0.4442 & 0.5995 \
+CLIP-Seq & 0.3500 & 0.1974 & 0.5060 \
+Gemini & 0.1532 & 0.8252 & 0.7464 \
+Gemini-Seq & 0.2239 & 0.8629 & 0.7596 \
+GPT & 0.0731 & 0.4680 & 0.9026 \
+GPT-Seq & 0.0496 & 0.3265 & 0.8398 \
+\hline
+\end{tabular}
+\end{table}
+
+The article states that the resting class was the most difficult behavior for most models. GPT achieved high recall for moving (0.9026) but much lower recall for resting (0.0731). Gemini and Gemini-Seq showed strong recall for eating and moving, but also low recall for resting. BLIP-FewShot-Seq was the configuration with the most balanced recall across the three behaviors.
+
+\section{Discussion}
+
+The results reported in the article indicate that model behavior varied considerably across tasks, adaptation regimes, and input modalities. The most consistent pattern was the substantial improvement of BLIP under few-shot learning. This was observed in all three tasks, and in behavior identification the best overall result was obtained when few-shot learning was combined with sequence-based input. In the interpretation presented by the article, these results indicate that BLIP benefits strongly from minimal task-specific supervision and from additional temporal context when behavior needs to be inferred.
+
+A second important observation is that the closed models, although restricted to zero-shot evaluation, achieved competitive results in specific tasks. GPT was the best zero-shot model for empty-image filtering, and Gemini obtained the highest zero-shot accuracy in species classification. In behavior identification, Gemini also benefited from sequence-based input, whereas GPT did not. The article therefore suggests that the usefulness of temporal context depends on the model architecture and is not uniformly beneficial.
+
+The behavior of CLIP was less stable across tasks. In empty-image filtering and species classification, few-shot adaptation led to lower performance than the corresponding zero-shot configuration. The article interprets this result as a possible sign of overfitting or ineffective adaptation under limited training data. In behavior identification, however, few-shot learning produced gains for CLIP, especially when sequences were used.
+
+The class-wise analyses help qualify these aggregate results. In empty-image filtering, models differed in the balance between detecting animals and recognizing empty scenes. In species classification, some classes such as giraffe, hyena, and elephant were more consistently recognized, whereas others showed greater variation across models. In behavior identification, the resting class remained difficult for nearly all methods, which indicates that aggregate accuracy may hide substantial inter-class differences.
+
+The article also discusses practical considerations for deployment. Although zero-shot and few-shot strategies reduce the need for large-scale retraining compared with conventional CNN pipelines, the evaluated models still impose non-trivial computational costs. BLIP and CLIP require GPU inference, while Gemini and GPT involve API usage costs. For continuous monitoring scenarios, the article suggests that practical systems may need tiered pipelines, lightweight pre-filtering stages, or compression and distillation strategies to reduce operational cost.
+
+Within the limits explicitly discussed in the article, three constraints are particularly relevant. First, the evaluation of zero-shot and few-shot learning was not symmetrical across models, because only CLIP and BLIP allowed local adaptation. Second, the experiments were conducted on smaller subsets of Snapshot Serengeti due to hardware constraints, even though the source dataset is much larger. Third, real-world deployment would require further consideration of inference cost and system design trade-offs. In addition, the article notes, in the context of the filtering task, that the relatively high performance of GPT may be partly explained by possible prior exposure to the dataset, since Snapshot Serengeti was released in 2015 and no earlier GPT snapshot was available for testing.
+
+\section{Final Remarks}
+
+The experiment described in the article investigated the integration of four multimodal models into three fundamental tasks of the camera-trap workflow: filtering empty images, classifying species, and identifying behavior. Using data from seasons 1 to 6 of Snapshot Serengeti, the study compared zero-shot and few-shot settings and, for behavior recognition, examined both single-image and sequence-based inference.
+
+The results reported in the article show that few-shot adaptation was decisive for BLIP, which moved from very low zero-shot performance to the best result in empty-image filtering and to competitive results in species classification and behavior recognition. In species classification, Gemini achieved the highest zero-shot accuracy, while GPT was the strongest zero-shot model for filtering empty images. In behavior identification, the best overall configuration was BLIP-FewShot-Seq, indicating that sequence-based inputs can improve performance when combined with model adaptation.
+
+In the context of this thesis, the experiment contributes by showing that multimodal AI models can be applied to multiple stages of the camera-trap workflow within a unified evaluation framework. At the same time, the reported findings indicate that performance depends strongly on the chosen model, on the availability of even limited task-specific supervision, and on whether temporal information is incorporated. The study therefore provides an empirical basis for positioning MLLMs as a relevant alternative for automating biodiversity monitoring tasks, while also delimiting the conditions under which these models were effective in the reported experiments.
