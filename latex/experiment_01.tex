@@ -1,5 +1,7 @@
 \chapter{Advancing Biodiversity Monitoring by Integrating Multimodal AI Models into Camera Trap Workflow}\label{cap:experiment_01}
 
+This chapter presents an experiment on the use of multimodal artificial intelligence models to support key stages of the camera-trap workflow in biodiversity monitoring. Based on the study by \cite{alencar2024zero}, the chapter examines the application of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp to three tasks: empty-image filtering, species classification, and behavior identification. The text describes the datasets, experimental protocols, evaluation metrics, and reported results, with emphasis on the comparison between zero-shot and few-shot settings and, for behavior analysis, between single-image and sequence-based inference.
+
 \section{Introduction}
 
 Biodiversity monitoring depends on the efficient analysis of large volumes of ecological data, and camera traps have become a central non-invasive instrument for this purpose. By continuously recording wildlife activity, camera traps support the study of species distribution, abundance, and behavior in natural environments \citep{tan2022animal,guo2024automatic}. Despite their utility, these datasets present substantial processing challenges, including strong class imbalance, a large proportion of empty images triggered by environmental factors, poor visual quality, and species labeling errors \citep{cunha2023bag,swanson2015snapshot,iannarilli2021evaluating,alencar2024zero}. Within the camera-trap workflow, three tasks are particularly relevant: filtering empty images, classifying animal species, and identifying animal behavior.
@@ -36,19 +38,40 @@ Table~\ref{tab:dataset_sizes} reproduces the distribution of images per subset a
 \centering
 \caption{Number of images in each subset used for the three tasks, as reported in the article.}
 \label{tab:dataset_sizes}
-\begin{tabular}{llrrrrrrrrrrrr}
+
+\vspace{0.5em}
+\textbf{(a) Empty-image filtering}\\[0.3em]
+\begin{tabular}{lrr}
 \hline
-Subset & Category & Animal & Empty & Moving & Resting & Eating & Gazelle & Hyena & Elephant & Lion & Bird & Buffalo & Zebra & Wildebeest & Giraffe \
+Subset & Animal & Empty \\
 \hline
-Val & Filtering & 1538 & 1462 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Val & Behavior & -- & -- & 1033 & 988 & 979 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Val & Species & -- & -- & -- & -- & -- & 350 & 347 & 341 & 334 & 333 & 329 & 323 & 322 & 321 \
-Test & Filtering & 4981 & 5019 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Test & Behavior & -- & -- & 3328 & 3309 & 3363 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Test & Species & -- & -- & -- & -- & -- & 1136 & 1130 & 1127 & 1125 & 1127 & 1136 & 1111 & 1122 & 1103 \
-Train & Filtering & 10114 & 9886 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Train & Behavior & -- & -- & 6586 & 6732 & 6682 & -- & -- & -- & -- & -- & -- & -- & -- & -- \
-Train & Species & -- & -- & -- & -- & -- & 2257 & 2248 & 2245 & 2220 & 2161 & 2248 & 2245 & 2209 & 2203 \
+Val & 1538 & 1462 \\
+Test & 4981 & 5019 \\
+Train & 10114 & 9886 \\
+\hline
+\end{tabular}
+
+\vspace{1em}
+\textbf{(b) Behavior identification}\\[0.3em]
+\begin{tabular}{lrrr}
+\hline
+Subset & Moving & Resting & Eating \\
+\hline
+Val & 1033 & 988 & 979 \\
+Test & 3328 & 3309 & 3363 \\
+Train & 6586 & 6732 & 6682 \\
+\hline
+\end{tabular}
+
+\vspace{1em}
+\textbf{(c) Species classification}\\[0.3em]
+\begin{tabular}{lrrrrrrrrr}
+\hline
+Subset & Gazelle & Hyena & Elephant & Lion & Bird & Buffalo & Zebra & Wildebeest & Giraffe \\
+\hline
+Val & 350 & 347 & 341 & 334 & 333 & 329 & 323 & 322 & 321 \\
+Test & 1136 & 1130 & 1127 & 1125 & 1127 & 1136 & 1111 & 1122 & 1103 \\
+Train & 2257 & 2248 & 2245 & 2220 & 2161 & 2248 & 2245 & 2209 & 2203 \\
 \hline
 \end{tabular}
 \end{table}
@@ -75,21 +98,21 @@ The prompts were tailored to the operational mechanism of each model. For Gemini
 
 For empty-image filtering, Gemini, GPT, and BLIP received the prompt:
 \begin{quote}
-`A photo of an animal: 0) no and 1) yes.''
+``A photo of an animal: 0) no and 1) yes.''
 \end{quote}
-CLIP matched images to descriptions such as `a photo of a background'' and ``a photo of an animal.''
+CLIP matched images to descriptions such as ``a photo of a background'' and ``a photo of an animal.''
 
 For species classification, Gemini, GPT, and BLIP received:
 \begin{quote}
-`Identify the species of the animal. Respond only with one of the following options: 0) hyena, 1) zebra, 2) giraffe, 3) buffalo, 4) gazelle, 5) wildebeest, 6) elephant, 7) lion, 8) bird.''
+``Identify the species of the animal. Respond only with one of the following options: 0) hyena, 1) zebra, 2) giraffe, 3) buffalo, 4) gazelle, 5) wildebeest, 6) elephant, 7) lion, 8) bird.''
 \end{quote}
-CLIP used descriptions such as `a photo of a giraffe,'' ``a photo of a lion,'' and analogous texts for the remaining classes.
+CLIP used descriptions such as ``a photo of a giraffe,'' ``a photo of a lion,'' and analogous texts for the remaining classes.
 
 For behavior identification, Gemini, GPT, and BLIP received:
 \begin{quote}
-`Identify the behavior the animals are performing. Respond only with one of the following options: 0) moving, 1) eating, 2) resting.''
+``Identify the behavior the animals are performing. Respond only with one of the following options: 0) moving, 1) eating, 2) resting.''
 \end{quote}
-CLIP used descriptions such as `a photo of an animal moving,'' `a photo of an animal eating,'' and `a photo of an animal resting.''
+CLIP used descriptions such as ``a photo of an animal moving,'' ``a photo of an animal eating,'' and ``a photo of an animal resting.''
 
 The article reports that several prompt variants were tested during validation, including alternative phrasings and different levels of specificity. The final prompts were selected according to their performance on training and validation data only, in order to avoid adaptation to the test set. All GPT and Gemini inferences were executed through the official APIs, specifically the OpenAI API for GPT-4o and the Google AI Studio API for Gemini 2.0 flash-exp. Outputs were automatically parsed to preserve reproducibility and avoid manual intervention.
 
@@ -109,34 +132,34 @@ Table~\ref{tab:overall_results} summarizes the results reported in the article f
 \label{tab:overall_results}
 \begin{tabular}{llccccc}
 \hline
-Task & Model & Precision & Recall & F1-score & Accuracy & CI95 \
+Task & Model & Precision & Recall & F1-score & Accuracy & CI95 \\
 \hline
-Animal & BLIP-FewShot & 0.9100 & 0.9100 & 0.9100 & 0.9100 & [0.904, 0.915] \
-Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \
-Animal & Gemini & 0.5695 & 0.5551 & 0.5536 & 0.8322 & [0.825, 0.839] \
-Animal & CLIP & 0.8150 & 0.7983 & 0.7959 & 0.7987 & [0.791, 0.806] \
-Animal & CLIP-FewShot & 0.7594 & 0.7589 & 0.7587 & 0.7588 & [0.750, 0.767] \
-Animal & BLIP & 0.0137 & 0.0035 & 0.0055 & 0.0761 & [0.071, 0.081] \
+Animal & BLIP-FewShot & 0.9100 & 0.9100 & 0.9100 & 0.9100 & [0.904, 0.915] \\
+Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \\
+Animal & Gemini & 0.5695 & 0.5551 & 0.5536 & 0.8322 & [0.825, 0.839] \\
+Animal & CLIP & 0.8150 & 0.7983 & 0.7959 & 0.7987 & [0.791, 0.806] \\
+Animal & CLIP-FewShot & 0.7594 & 0.7589 & 0.7587 & 0.7588 & [0.750, 0.767] \\
+Animal & BLIP & 0.0137 & 0.0035 & 0.0055 & 0.0761 & [0.071, 0.081] \\
 \hline
-Behavior & BLIP-FewShot-Seq & 0.7640 & 0.7555 & 0.7567 & 0.7557 & [0.747, 0.764] \
-Behavior & BLIP-FewShot & 0.7041 & 0.7011 & 0.7011 & 0.7014 & [0.692, 0.710] \
-Behavior & Gemini-Seq & 0.5002 & 0.4616 & 0.4336 & 0.6171 & [0.608, 0.627] \
-Behavior & Gemini & 0.4533 & 0.4312 & 0.3940 & 0.5766 & [0.567, 0.586] \
-Behavior & CLIP-FewShot-Seq & 0.5222 & 0.5007 & 0.5016 & 0.5006 & [0.491, 0.510] \
-Behavior & GPT & 0.6339 & 0.4813 & 0.4195 & 0.4819 & [0.472, 0.492] \
-Behavior & CLIP-FewShot & 0.4875 & 0.4824 & 0.4766 & 0.4817 & [0.472, 0.491] \
-Behavior & GPT-Seq & 0.4886 & 0.4053 & 0.3351 & 0.4058 & [0.396, 0.415] \
-Behavior & CLIP-Seq & 0.3431 & 0.3511 & 0.3397 & 0.3506 & [0.341, 0.360] \
-Behavior & CLIP & 0.3348 & 0.3430 & 0.3321 & 0.3425 & [0.333, 0.352] \
-Behavior & BLIP-Seq & 0.0477 & 0.0290 & 0.0361 & 0.0879 & [0.083, 0.094] \
-Behavior & BLIP & 0.0312 & 0.0002 & 0.0004 & 0.0011 & [0.001, 0.002] \
+Behavior & BLIP-FewShot-Seq & 0.7640 & 0.7555 & 0.7567 & 0.7557 & [0.747, 0.764] \\
+Behavior & BLIP-FewShot & 0.7041 & 0.7011 & 0.7011 & 0.7014 & [0.692, 0.710] \\
+Behavior & Gemini-Seq & 0.5002 & 0.4616 & 0.4336 & 0.6171 & [0.608, 0.627] \\
+Behavior & Gemini & 0.4533 & 0.4312 & 0.3940 & 0.5766 & [0.567, 0.586] \\
+Behavior & CLIP-FewShot-Seq & 0.5222 & 0.5007 & 0.5016 & 0.5006 & [0.491, 0.510] \\
+Behavior & GPT & 0.6339 & 0.4813 & 0.4195 & 0.4819 & [0.472, 0.492] \\
+Behavior & CLIP-FewShot & 0.4875 & 0.4824 & 0.4766 & 0.4817 & [0.472, 0.491] \\
+Behavior & GPT-Seq & 0.4886 & 0.4053 & 0.3351 & 0.4058 & [0.396, 0.415] \\
+Behavior & CLIP-Seq & 0.3431 & 0.3511 & 0.3397 & 0.3506 & [0.341, 0.360] \\
+Behavior & CLIP & 0.3348 & 0.3430 & 0.3321 & 0.3425 & [0.333, 0.352] \\
+Behavior & BLIP-Seq & 0.0477 & 0.0290 & 0.0361 & 0.0879 & [0.083, 0.094] \\
+Behavior & BLIP & 0.0312 & 0.0002 & 0.0004 & 0.0011 & [0.001, 0.002] \\
 \hline
-Species & BLIP-FewShot & 0.7684 & 0.7532 & 0.7556 & 0.7524 & [0.744, 0.761] \
-Species & Gemini & 0.6912 & 0.6837 & 0.6859 & 0.7589 & [0.754, 0.764] \
-Species & GPT & 0.7036 & 0.6190 & 0.6296 & 0.6868 & [0.678, 0.696] \
-Species & CLIP & 0.5352 & 0.4580 & 0.4456 & 0.4558 & [0.446, 0.466] \
-Species & CLIP-FewShot & 0.3359 & 0.3201 & 0.3174 & 0.3202 & [0.311, 0.329] \
-Species & BLIP & 0.1861 & 0.0005 & 0.0011 & 0.0006 & [0.000, 0.001] \
+Species & BLIP-FewShot & 0.7684 & 0.7532 & 0.7556 & 0.7524 & [0.744, 0.761] \\
+Species & Gemini & 0.6912 & 0.6837 & 0.6859 & 0.7589 & [0.754, 0.764] \\
+Species & GPT & 0.7036 & 0.6190 & 0.6296 & 0.6868 & [0.678, 0.696] \\
+Species & CLIP & 0.5352 & 0.4580 & 0.4456 & 0.4558 & [0.446, 0.466] \\
+Species & CLIP-FewShot & 0.3359 & 0.3201 & 0.3174 & 0.3202 & [0.311, 0.329] \\
+Species & BLIP & 0.1861 & 0.0005 & 0.0011 & 0.0006 & [0.000, 0.001] \\
 \hline
 \end{tabular}
 \end{table}
@@ -159,14 +182,14 @@ The article also reports class-wise recall for the two categories involved in fi
 \label{tab:filter_recall}
 \begin{tabular}{lcc}
 \hline
-Model & Animal & Empty \
+Model & Animal & Empty \\
 \hline
-BLIP & 0.1528 & 0.0000 \
-BLIP-FewShot & 0.9119 & 0.9081 \
-CLIP & 0.6840 & 0.9125 \
-CLIP-FewShot & 0.7828 & 0.7350 \
-Gemini & 0.9538 & 0.7115 \
-GPT & 0.7635 & 0.9490 \
+BLIP & 0.1528 & 0.0000 \\
+BLIP-FewShot & 0.9119 & 0.9081 \\
+CLIP & 0.6840 & 0.9125 \\
+CLIP-FewShot & 0.7828 & 0.7350 \\
+Gemini & 0.9538 & 0.7115 \\
+GPT & 0.7635 & 0.9490 \\
 \hline
 \end{tabular}
 \end{table}
@@ -187,18 +210,20 @@ The article also reports species-wise recall values, reproduced in Table~\ref{ta
 \centering
 \caption{Recall values for the species identification task.}
 \label{tab:species_recall}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccccccccc}
 \hline
-Model & Giraffe & Lion & Bird & Zebra & Hyena & Buffalo & Wildebeest & Gazelle & Elephant \
+Model & Giraffe & Lion & Bird & Zebra & Hyena & Buffalo & Wildebeest & Gazelle & Elephant \\
 \hline
-BLIP & 0.0018 & 0.0027 & 0.0000 & 0.0009 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 \
-BLIP-FewShot & 0.8812 & 0.8000 & 0.6690 & 0.6535 & 0.8575 & 0.5669 & 0.7460 & 0.7991 & 0.8058 \
-CLIP & 0.5249 & 0.1893 & 0.1038 & 0.4797 & 0.6018 & 0.2518 & 0.7273 & 0.7051 & 0.5378 \
-CLIP-FewShot & 0.4760 & 0.3547 & 0.1233 & 0.2070 & 0.5283 & 0.2579 & 0.3556 & 0.2502 & 0.3277 \
-Gemini & 0.8821 & 0.8107 & 0.6291 & 0.7795 & 0.7469 & 0.7685 & 0.6123 & 0.7758 & 0.8319 \
-GPT & 0.8368 & 0.5289 & 0.9442 & 0.7525 & 0.9442 & 0.7130 & 0.4991 & 0.7535 & 0.7582 \
+BLIP & 0.0018 & 0.0027 & 0.0000 & 0.0009 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 \\
+BLIP-FewShot & 0.8812 & 0.8000 & 0.6690 & 0.6535 & 0.8575 & 0.5669 & 0.7460 & 0.7991 & 0.8058 \\
+CLIP & 0.5249 & 0.1893 & 0.1038 & 0.4797 & 0.6018 & 0.2518 & 0.7273 & 0.7051 & 0.5378 \\
+CLIP-FewShot & 0.4760 & 0.3547 & 0.1233 & 0.2070 & 0.5283 & 0.2579 & 0.3556 & 0.2502 & 0.3277 \\
+Gemini & 0.8821 & 0.8107 & 0.6291 & 0.7795 & 0.7469 & 0.7685 & 0.6123 & 0.7758 & 0.8319 \\
+GPT & 0.8368 & 0.5289 & 0.9442 & 0.7525 & 0.9442 & 0.7130 & 0.4991 & 0.7535 & 0.7582 \\
 \hline
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 The class-wise analysis reported in the article indicates that giraffe, hyena, and elephant were among the easiest species for the evaluated models. BLIP-FewShot and Gemini both reached recall above 0.88 for giraffe, while GPT reached 0.9442 for hyena. The bird class showed strong contrast among models, with GPT reaching 0.9442 recall and CLIP remaining much lower.
@@ -221,20 +246,20 @@ The class-wise recall values for behavior identification are reproduced in Table
 \label{tab:behavior_recall}
 \begin{tabular}{lccc}
 \hline
-Model & Resting & Eating & Moving \
+Model & Resting & Eating & Moving \\
 \hline
-BLIP & 0.0000 & 0.0000 & 0.0033 \
-BLIP-FewShot & 0.6706 & 0.7707 & 0.6620 \
-BLIP-FewShot-Seq & 0.7232 & 0.8040 & 0.7392 \
-BLIP-Seq & 0.0000 & 0.2614 & 0.0000 \
-CLIP & 0.3497 & 0.1909 & 0.4886 \
-CLIP-FewShot & 0.5748 & 0.3289 & 0.5436 \
-CLIP-FewShot-Seq & 0.4584 & 0.4442 & 0.5995 \
-CLIP-Seq & 0.3500 & 0.1974 & 0.5060 \
-Gemini & 0.1532 & 0.8252 & 0.7464 \
-Gemini-Seq & 0.2239 & 0.8629 & 0.7596 \
-GPT & 0.0731 & 0.4680 & 0.9026 \
-GPT-Seq & 0.0496 & 0.3265 & 0.8398 \
+BLIP & 0.0000 & 0.0000 & 0.0033 \\
+BLIP-FewShot & 0.6706 & 0.7707 & 0.6620 \\
+BLIP-FewShot-Seq & 0.7232 & 0.8040 & 0.7392 \\
+BLIP-Seq & 0.0000 & 0.2614 & 0.0000 \\
+CLIP & 0.3497 & 0.1909 & 0.4886 \\
+CLIP-FewShot & 0.5748 & 0.3289 & 0.5436 \\
+CLIP-FewShot-Seq & 0.4584 & 0.4442 & 0.5995 \\
+CLIP-Seq & 0.3500 & 0.1974 & 0.5060 \\
+Gemini & 0.1532 & 0.8252 & 0.7464 \\
+Gemini-Seq & 0.2239 & 0.8629 & 0.7596 \\
+GPT & 0.0731 & 0.4680 & 0.9026 \\
+GPT-Seq & 0.0496 & 0.3265 & 0.8398 \\
 \hline
 \end{tabular}
 \end{table}
