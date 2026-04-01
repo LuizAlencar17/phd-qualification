@@ -104,6 +104,11 @@
 \pdfsuppresswarningpagegroup=1
 \pdfminorversion=7
 
+% Fix overfull \vbox on every page: text height exceeds available space by one \baselineskip
+\setlength{\textheight}{\textheight}
+\addtolength{\textheight}{-\baselineskip}
+\checkandfixthelayout[fixed]
+
 \begin{document}
 
 \ppgccufmg{
