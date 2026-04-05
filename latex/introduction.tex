@@ -36,16 +36,53 @@ Given that a large fraction of camera-trap frames are empty (caused by incidenta
 
 \section{Research Hypotheses}
 
-Text here.
+\subsection{Primary Hypothesis}
+
+\begin{description}
+  \item[H1] Multimodal pre-trained models can support core stages of the camera-trap workflow—empty-image filtering, species classification, and behavior identification—with empirically measurable performance under limited or no task-specific supervision, thereby constituting a viable alternative to conventional task-specific pipelines in biodiversity monitoring.
+  \begin{description}
+    \item[H1a] In camera-trap tasks evaluated with multimodal foundation models, few-shot adaptation can improve performance relative to zero-shot inference, although the magnitude and direction of this effect depend on the model and the task.
+    \item[H1b] For behavior identification in camera-trap data, sequence-based inference can improve predictive performance relative to single-image inference when combined with appropriate multimodal model adaptation.
+    \item[H1c] The effectiveness of multimodal foundation models in camera-trap analysis is not uniform across tasks; rather, it varies according to the model architecture, the availability of limited task-specific supervision, and the incorporation of temporal context.
+  \end{description}
+\end{description}
+
+\subsection{Secondary Hypothesis}
+
+\begin{description}
+  \item[H2] In zero-shot species classification for camera-trap images, explicit fusion of complementary visual and textual similarity signals can improve top-1 classification accuracy relative to a visual-only baseline in several dataset and image-setting configurations, without requiring task-specific training or fine-tuning.
+  \begin{description}
+    \item[H2a] A training-free multimodal pipeline that combines CLIP-based visual matching, language-model-generated image descriptions, and semantic matching against a species knowledge base can provide effective zero-shot species recognition across different camera-trap datasets.
+    \item[H2b] The gains obtained by multimodal fusion in zero-shot species classification are dependent on the dataset and image setting, and therefore are expected to be positive in several, but not necessarily all, evaluated configurations.
+  \end{description}
+\end{description}
 
 \section{Objectives}
 
-Text here.
+\subsection{General Objective}
 
-\section{Publications}
+To investigate whether multimodal artificial intelligence methods can improve the automation of camera-trap workflows for biodiversity monitoring by supporting key ecological vision tasks under limited-supervision and zero-shot settings.  
 
-Text here.
+\subsection{Specific Objectives}
 
-\section{Document Outline}
+\begin{description} 
+\item[1.] To evaluate the applicability of multimodal foundation models to three core camera-trap tasks: empty-image filtering, species classification, and behavior identification. 
 
-Text here.
+\item[2.] To compare the performance of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp under zero-shot conditions for the analyzed camera-trap tasks. 
+
+\item[3.] To assess the effect of few-shot adaptation on open multimodal models in empty-image filtering, species classification, and behavior identification. 
+
+\item[4.] To analyze whether sequence-based inference improves multimodal behavior identification relative to single-image inference. 
+
+\item[5.] To characterize task-dependent differences in multimodal model behavior through comparative evaluation across accuracy, precision, recall, F1-score, and class-wise performance. 
+
+\item[6.] To design and evaluate a zero-shot multimodal fusion pipeline for species classification in camera-trap images based on the integration of CLIP-derived visual similarity and language-model-assisted textual similarity.  
+
+\item[7.] To investigate whether weighted linear fusion of visual and textual signals improves zero-shot top-1 species-classification accuracy relative to a visual-only baseline across different camera-trap datasets and image settings.  
+
+\item[8.] To evaluate the proposed fusion strategy on both full-frame and cropped camera-trap images using fixed candidate species sets and a pre-built textual knowledge base. 
+
+\item[9.] To examine the consistency and limitations of the fusion-based zero-shot approach across datasets, including cases in which fusion improves confidence without corresponding gains in accuracy.  
+
+\item[10.] To establish empirical evidence on the conditions under which multimodal models and multimodal fusion can contribute to practical camera-trap analysis while reducing dependence on task-specific training.  
+\end{description} 

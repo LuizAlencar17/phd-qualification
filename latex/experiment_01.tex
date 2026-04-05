@@ -168,7 +168,7 @@ The article highlights that the confidence intervals were generally non-overlapp
 
 \subsection{Empty-image Filtering}
 
-In the empty-image filtering task, BLIP in zero-shot mode obtained the lowest performance, with accuracy of 0.0761, precision of 0.0137, recall of 0.0035, and F1-score of 0.0055. After few-shot adaptation, BLIP-FewShot improved substantially, reaching 0.9100 in all four metrics and achieving the best result reported for this task.
+In the empty-image filtering task, BLIP in zero-shot mode obtained the lowest performance, with accuracy of 0.0761, precision of 0.0137, recall of 0.0035, and F1-score of 0.0055. After few-shot adaptation, BLIP-FewShot improved substantially, reaching 0.9100 in all four metrics and achieving the best result reported for this task (see Figure ~\ref{fig:experiment_1-example_animal}).
 
 CLIP performed better than BLIP in zero-shot mode, with accuracy of 0.7987 and F1-score of 0.7959. However, its few-shot version did not improve upon this result; CLIP-FewShot obtained accuracy of 0.7588 and F1-score of 0.7587. The article interprets this decrease as evidence that CLIP may have been negatively affected by the few available training samples.
 
@@ -196,9 +196,16 @@ GPT & 0.7635 & 0.9490 \\
 
 These values show different trade-offs between empty and non-empty detection. CLIP in zero-shot mode favored the empty class, while Gemini favored the animal class. BLIP-FewShot presented the most balanced recall across the two classes.
 
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=6in]{images/experiment_1-example_animal.png}
+\caption{Examples of predictions for the filtering empty images task. In these cases, only one model produced the correct prediction, while the others misclassified the image: (a) Only CLIP-FewShot correctly identified the non-empty class; (b) Only BLIP-FewShot correctly identified the image as empty; (c) Only Gemini correctly assigned the non-empty class (the bounding box in the image is just to help see where the animal is, due to the conditions of some images).}
+\label{fig:experiment_1-example_animal}
+\end{figure*}
+
 \subsection{Species Classification}
 
-In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task.
+In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task (see Figure ~\ref{fig:experiment_1-example_species}).
 
 CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score.
 
@@ -228,9 +235,15 @@ GPT & 0.8368 & 0.5289 & 0.9442 & 0.7525 & 0.9442 & 0.7130 & 0.4991 & 0.7535 & 0.
 
 The class-wise analysis reported in the article indicates that giraffe, hyena, and elephant were among the easiest species for the evaluated models. BLIP-FewShot and Gemini both reached recall above 0.88 for giraffe, while GPT reached 0.9442 for hyena. The bird class showed strong contrast among models, with GPT reaching 0.9442 recall and CLIP remaining much lower.
 
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=6in]{images/experiment_1-example_species.png}
+\caption{Examples of correctly species identification: (a) Only CLIP-FewShot correctly identified a gazelle; (b) Only GPT correctly identified a gazelle; (c) Only BLIP-FewShot correctly identified a lion (the bounding box in the image is just to help see where the animal is, due to the conditions of some images).}
+\label{fig:experiment_1-example_species}
+\end{figure*}
 \subsection{Behavior Identification}
 
-Behavior identification was evaluated both with single images and with image sequences. In zero-shot mode with single images, BLIP again presented the lowest performance, with accuracy of 0.0011 and F1-score of 0.0004. Using sequences without few-shot adaptation yielded only a limited gain for BLIP-Seq, which reached accuracy of 0.0879 and F1-score of 0.0361.
+Behavior identification was evaluated both with single images and with image sequences (see Figure ~\ref{fig:experiment_1-example_seq}). In zero-shot mode with single images, BLIP again presented the lowest performance, with accuracy of 0.0011 and F1-score of 0.0004. Using sequences without few-shot adaptation yielded only a limited gain for BLIP-Seq, which reached accuracy of 0.0879 and F1-score of 0.0361.
 
 With few-shot learning, however, BLIP improved substantially. BLIP-FewShot obtained accuracy of 0.7014 and F1-score of 0.7011. When image sequences were added, BLIP-FewShot-Seq achieved the best performance reported for this task, with accuracy of 0.7557 and F1-score of 0.7567. The article interprets this result as evidence that temporal context can support behavior recognition when combined with few-shot adaptation.
 
@@ -265,6 +278,13 @@ GPT-Seq & 0.0496 & 0.3265 & 0.8398 \\
 \end{table}
 
 The article states that the resting class was the most difficult behavior for most models. GPT achieved high recall for moving (0.9026) but much lower recall for resting (0.0731). Gemini and Gemini-Seq showed strong recall for eating and moving, but also low recall for resting. BLIP-FewShot-Seq was the configuration with the most balanced recall across the three behaviors.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=3in]{images/experiment_1-example_seq.png}
+\caption{Examples of the behavior identification task where only one model produced the correct prediction while all others were incorrect: (a) model BLIP-FewShot-Seq and class resting; (b) model CLIPFewShot-Seq and class moving; (c) model GPT-Seq and class moving; (d) model Gemini-Seq and class moving; (e) model CLIP-Seq and class resting (the bounding box in the image is just to help see where the animal is, due to the conditions of some images).}
+\label{fig:experiment_1-example_seq}
+\end{figure*}
 
 \section{Discussion}
 
