@@ -1,5 +1,12 @@
 \begin{otherlanguage}{portuguese}
-Text here
+O monitoramento da biodiversidade por meio de armadilhas fotográficas (camera traps) tornou-se uma ferramenta essencial para estudos ecológicos, porém a análise manual do grande volume de dados gerados permanece um desafio significativo. Nos últimos anos, métodos baseados em aprendizado profundo têm sido amplamente utilizados para automatizar tarefas como filtragem de imagens vazias, reconhecimento de espécies e identificação de comportamento animal. No entanto, essas abordagens geralmente dependem de grandes volumes de dados anotados e apresentam limitações de generalização em cenários reais.
+
+Esta tese investiga o uso de modelos multimodais de inteligência artificial, especialmente modelos baseados em visão e linguagem, como alternativa para automatizar fluxos de trabalho em armadilhas fotográficas sob regimes de baixa supervisão. O trabalho é estruturado em dois experimentos principais. No primeiro, avalia-se a capacidade de modelos multimodais — incluindo CLIP, BLIP, GPT e Gemini — de realizar três tarefas centrais (filtragem de imagens vazias, classificação de espécies e identificação de comportamento) em configurações zero-shot e few-shot, considerando também inferência baseada em sequência de imagens. Os resultados demonstram que esses modelos podem alcançar desempenho competitivo sem treinamento específico para a tarefa, embora com variações significativas entre tarefas e arquiteturas.
+
+No segundo experimento, propõe-se um método de fusão multimodal para classificação de espécies em regime zero-shot, combinando similaridade visual baseada em CLIP com similaridade textual derivada de descrições geradas por modelos de linguagem. Os resultados indicam que a fusão de sinais visuais e textuais pode melhorar a acurácia top-1 em diferentes cenários, embora os ganhos dependam das características dos dados e do contexto de aplicação.
+
+De forma geral, esta tese contribui com uma análise sistemática do uso de modelos multimodais em tarefas de monitoramento da biodiversidade, evidenciando seu potencial para reduzir a dependência de dados anotados e apoiar fluxos de trabalho mais integrados e escaláveis em ecologia computacional.
+
 \end{otherlanguage}
 
 % {\setlength{\parindent}{0cm}

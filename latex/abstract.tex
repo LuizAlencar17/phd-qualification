@@ -1,4 +1,10 @@
-Text here
+Biodiversity monitoring using camera traps has become a fundamental tool in ecological research; however, the manual analysis of the large volumes of data generated remains a major bottleneck. In recent years, deep learning methods have been widely adopted to automate tasks such as empty-image filtering, species recognition, and behavior identification. Nevertheless, these approaches typically rely on large annotated datasets and often struggle to generalize across real-world conditions.
+
+This thesis investigates the use of multimodal artificial intelligence models, particularly vision-language foundation models, as an alternative for automating camera-trap workflows under limited supervision. The work is structured around two main experiments. The first evaluates the capability of multimodal models—including CLIP, BLIP, GPT, and Gemini—to perform three core tasks (empty-image filtering, species classification, and behavior recognition) under zero-shot and few-shot settings, also considering sequence-based inference. The results show that these models can achieve competitive performance without task-specific training, although their effectiveness varies across tasks and model architectures.
+
+The second experiment proposes a multimodal fusion approach for zero-shot species classification, combining CLIP-based visual similarity with textual similarity derived from language-model-generated descriptions. The results demonstrate that integrating visual and textual signals can improve top-1 classification accuracy across different datasets and image settings, although gains are context-dependent.
+
+Overall, this thesis provides a systematic analysis of multimodal models for biodiversity monitoring tasks, highlighting their potential to reduce reliance on annotated data and to support more integrated and scalable ecological workflows.
 
 % {\setlength{\parindent}{0cm}
 % \textbf{Keywords}: Deep neural networks, camera-trap data, automated species
