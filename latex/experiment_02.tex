@@ -102,74 +102,125 @@ The evaluated configuration uses the following settings:
 
 \subsection{Results Across Datasets and Image Settings}
 
-The experiments evaluate the behaviour of the proposed multimodal pipeline across six principal configurations formed by the combination of three datasets (Caltech, Serengeti, and WCS) and two image types (cropped and full). For each configuration, results are reported for the baseline approach and for the VLM Fusion pipeline. The main quantities reported are classification accuracy, average confidence, total number of evaluated samples, and number of correct predictions. The comparison between baseline and VLM Fusion is further summarised in terms of absolute accuracy improvement and change in average confidence.
+The experiments evaluate the behaviour of the proposed multimodal pipeline across six principal configurations formed by the combination of three datasets (Caltech, Serengeti, and WCS) and two image types (cropped and full-frame images). For each configuration, results are reported for four approaches: the WildMatch-based baseline, BLIP, standalone CLIP, and the proposed CLIP Fusion pipeline. The primary metric reported is top-1 classification accuracy, together with the total number of evaluated samples and the corresponding number of correct predictions.
 
-Table~\ref{tab:exp02_accuracy_summary} summarises the top-1 accuracy results for the six evaluated dataset--image configurations. The proposed VLM Fusion method outperformed the baseline in four of the six configurations (Caltech cropped, Serengeti cropped, WCS cropped, and WCS full), while slight decreases were observed for Caltech full and Serengeti full.
+Table~\ref{tab:exp02_accuracy_all_methods} summarises the complete set of top-1 accuracy results. The proposed CLIP Fusion method obtained the highest accuracy in four of the six configurations: Caltech cropped, Serengeti cropped, WCS cropped, and WCS full. In Serengeti full-frame images, CLIP Fusion matched the baseline performance exactly, with both methods achieving 66.42\% accuracy. The only configuration in which CLIP Fusion was slightly below the baseline was Caltech full-frame images, where the difference was marginal, corresponding to $-0.10$ percentage points.
 
 \begin{table}[t]
 \centering
-\caption{Top-1 accuracy and number of correct predictions for the baseline and the proposed CLIP Fusion pipeline across datasets and image settings.}
-\label{tab:exp02_accuracy_summary}
+\caption{Top-1 accuracy and number of correct predictions for all evaluated approaches across datasets and image settings.}
+\label{tab:exp02_accuracy_all_methods}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l l r c c c r r}
+\begin{tabular}{l l r c r c r c r c r}
 \hline
-\textbf{Dataset} & \textbf{Image} & \textbf{Samples} & \textbf{Acc. (Base)} & \textbf{Acc. (Fusion)} & \textbf{$\Delta$Acc. (pp)} & \textbf{Correct (Base)} & \textbf{Correct (Fusion)} \\
+\textbf{Dataset} & \textbf{Image} & \textbf{Samples} 
+& \textbf{Acc. (Base)} & \textbf{Correct} 
+& \textbf{Acc. (BLIP)} & \textbf{Correct} 
+& \textbf{Acc. (CLIP)} & \textbf{Correct} 
+& \textbf{Acc. (Fusion)} & \textbf{Correct} \\
 \hline
-Caltech & Cropped & 1000 & 68.3\% & 73.5\% & +5.20 & 683 & 735 \\
-Caltech & Full & 1000 & 58.1\% & 58.0\% & $-0.10$ & 581 & 580 \\
-Serengeti & Cropped & 1200 & 67.0\% & 68.75\% & +1.75 & 804 & 825 \\
-Serengeti & Full & 1200 & 66.42\% & 65.25\% & $-1.17$ & 797 & 783 \\
-WCS & Cropped & 1000 & 58.2\% & 60.7\% & +2.50 & 582 & 607 \\
-WCS & Full & 1000 & 72.1\% & 76.4\% & +4.30 & 721 & 764 \\
+Caltech & Cropped & 1000 
+& 68.30\% & 683 
+& 12.90\% & 129 
+& 72.70\% & 727 
+& 73.40\% & 734 \\
+
+Caltech & Full & 1000 
+& 58.10\% & 581 
+& 11.30\% & 113 
+& 54.70\% & 547 
+& 58.00\% & 580 \\
+
+Serengeti & Cropped & 1200 
+& 67.00\% & 804 
+& 5.42\% & 65 
+& 65.67\% & 788 
+& 68.75\% & 825 \\
+
+Serengeti & Full & 1200 
+& 66.42\% & 797 
+& 3.75\% & 45 
+& 62.58\% & 751 
+& 66.42\% & 797 \\
+
+WCS & Cropped & 1000 
+& 58.20\% & 582 
+& 6.40\% & 64 
+& 57.00\% & 570 
+& 60.20\% & 602 \\
+
+WCS & Full & 1000 
+& 72.10\% & 721 
+& 2.90\% & 29 
+& 69.50\% & 695 
+& 76.40\% & 764 \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-The absolute accuracy improvements of VLM Fusion relative to the baseline (Table~\ref{tab:exp02_accuracy_summary}) ranged from $-1.17$ to +5.20 percentage points. Across all six configurations, the average reported improvement was 2.08 percentage points. The largest improvement was obtained for Caltech cropped images (+5.20 pp), while the largest decrease relative to baseline occurred for Serengeti full images ($-1.17$ pp). Table~\ref{tab:exp02_accuracy_summary} also reports the sample counts and the absolute numbers of correct predictions. The most pronounced gains in absolute numbers of correctly classified images were obtained for Caltech cropped (from 683 to 735 correct predictions) and WCS full (from 721 to 764).
-
-\subsection{Confidence Analysis}
-
-Average confidence increased for VLM Fusion in all reported baseline comparisons, regardless of whether accuracy improved (Table~\ref{tab:exp02_confidence_summary}). The corresponding confidence changes ranged from +7.83 to +11.40 percentage points. The largest increase in average confidence was observed for Caltech full images, even though this configuration did not improve in terms of classification accuracy.
+The direct comparison between the baseline and CLIP Fusion is shown in Table~\ref{tab:exp02_improvement_summary}. The absolute accuracy differences ranged from $-0.10$ to +5.10 percentage points. Across the six evaluated configurations, CLIP Fusion achieved an average improvement of approximately 2.18 percentage points over the baseline. The largest gain was observed for Caltech cropped images (+5.10 pp), followed by WCS full-frame images (+4.30 pp). Positive gains were also observed for WCS cropped images (+2.00 pp) and Serengeti cropped images (+1.75 pp). In Serengeti full-frame images, the two methods obtained identical accuracy.
 
 \begin{table}[t]
 \centering
-\caption{Average confidence for the baseline and the proposed CLIP Fusion pipeline across datasets and image settings.}
-\label{tab:exp02_confidence_summary}
-\begin{tabular}{l l c c}
+\caption{Accuracy improvement of CLIP Fusion relative to the baseline across datasets and image settings.}
+\label{tab:exp02_improvement_summary}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l l c c c r r}
 \hline
-\textbf{Dataset} & \textbf{Image} & \textbf{Conf. (Base)} & \textbf{Conf. (Fusion)} \\
+\textbf{Dataset} & \textbf{Image} 
+& \textbf{Acc. (Base)} 
+& \textbf{Acc. (Fusion)} 
+& \textbf{$\Delta$Acc. (pp)}
+& \textbf{Correct (Base)}
+& \textbf{Correct (Fusion)} \\
 \hline
-Caltech & Cropped & 86.87\% & 96.50\% \\
-Caltech & Full & 84.00\% & 95.40\% \\
-Serengeti & Cropped & 88.78\% & 96.69\% \\
-Serengeti & Full & 86.50\% & 96.06\% \\
-WCS & Cropped & 88.07\% & 96.80\% \\
-WCS & Full & 87.83\% & 95.67\% \\
+Caltech & Cropped 
+& 68.30\% & 73.40\% & +5.10 & 683 & 734 \\
+
+Caltech & Full 
+& 58.10\% & 58.00\% & $-0.10$ & 581 & 580 \\
+
+Serengeti & Cropped 
+& 67.00\% & 68.75\% & +1.75 & 804 & 825 \\
+
+Serengeti & Full 
+& 66.42\% & 66.42\% & 0.00 & 797 & 797 \\
+
+WCS & Cropped 
+& 58.20\% & 60.20\% & +2.00 & 582 & 602 \\
+
+WCS & Full 
+& 72.10\% & 76.40\% & +4.30 & 721 & 764 \\
 \hline
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
+
+The standalone CLIP results provide an additional reference for interpreting the contribution of the fusion mechanism. In Caltech cropped images, CLIP alone already achieved a strong result, with 72.70\% accuracy, but CLIP Fusion further improved this value to 73.40\%. In the remaining configurations, CLIP Fusion consistently outperformed standalone CLIP. This suggests that the incorporation of the textual branch can provide additional discriminative information beyond visual-text matching with CLIP alone, particularly in the WCS full-frame setting, where CLIP Fusion improved over standalone CLIP by 6.90 percentage points.
+
+By contrast, BLIP showed substantially lower performance across all configurations, with accuracies ranging from 2.90\% to 12.90\%. These results indicate that, under the evaluated zero-shot classification protocol, BLIP alone was not competitive with the baseline, standalone CLIP, or the proposed fusion approach. This behaviour suggests that BLIP, when used in isolation under this evaluation setup, was not sufficient for the fine-grained species classification task considered in this chapter.
 
 \section{Discussion}
 
-The reported results indicate that the integration of VLM-based visual matching and LLM-assisted textual matching can improve zero-shot species classification performance in several camera trap scenarios. In particular, the proposed fusion strategy achieved higher top-1 accuracy in four of the six main evaluated configurations, with gains ranging from 1.75 to 5.20 percentage points. The largest positive effects were observed for cropped images in Caltech and for full images in WCS.
+The complete set of results provides a more detailed view of the contribution of multimodal fusion to zero-shot species classification in camera trap images. The proposed CLIP Fusion method achieved the best accuracy in four of the six evaluated dataset--image configurations and tied with the baseline in one additional configuration. The only case in which the baseline remained slightly superior was Caltech full-frame images, where the difference was limited to 0.10 percentage points. Overall, these results indicate that the fusion of CLIP-based visual similarity and ModernBERT-based textual similarity can improve zero-shot recognition performance in most evaluated settings.
 
-At the same time, the results do not indicate uniform improvement across all settings. In full-image configurations for Caltech and Serengeti, the baseline slightly outperformed the proposed fusion approach. This outcome suggests that the contribution of the additional textual branch and the weighted fusion mechanism is dependent on the dataset and image setting under evaluation. Based on the reported experiments alone, the method should therefore be interpreted as beneficial in several, but not all, tested conditions.
+The comparison with standalone CLIP is particularly informative. Although CLIP alone achieved competitive performance in some configurations, especially Caltech cropped images, CLIP Fusion outperformed it in every dataset--image configuration. This suggests that the textual branch contributes useful complementary information when combined with the visual branch through weighted fusion. The improvement is especially notable for WCS full-frame images, where CLIP Fusion reached 76.40\% accuracy compared with 69.50\% for standalone CLIP and 72.10\% for the baseline. This result indicates that the proposed fusion mechanism may be particularly beneficial when contextual visual information from the full frame remains relevant to classification.
 
-The confidence analysis shows a consistent increase in average confidence for VLM Fusion across all six baseline comparisons. However, these increases in confidence do not always coincide with higher classification accuracy. This is evident in the Caltech full and Serengeti full settings, where VLM Fusion produced higher average confidence despite lower accuracy than the baseline. Therefore, within the reported experimental evidence, confidence values derived from the fused-score margin appear to reflect score separation between top-ranked classes, but not necessarily improved correctness in every configuration.
+The effect of cropping was not uniform across datasets. For Caltech and Serengeti, cropped images produced higher CLIP Fusion accuracy than full-frame images. This is consistent with the expectation that removing background clutter can make the target animal more visually salient. However, the opposite pattern was observed for WCS, where full-frame images achieved substantially higher accuracy than cropped images for both the baseline and CLIP Fusion. This suggests that, in WCS, contextual information or crop quality may play an important role. The results therefore indicate that cropping is not universally beneficial and that the relationship between image framing and classification accuracy depends on dataset-specific characteristics.
 
-The results also illustrate the effect of combining complementary modalities without task-specific training. The visual branch directly compares the input image with species descriptions in the VLM space, while the textual branch introduces an intermediate image description generated by a vision-language model and matched against species summaries with ModernBERT. The observed improvements in four configurations support the view that these two branches can provide complementary information under zero-shot inference. Nevertheless, the reported results do not isolate the independent contribution of each component beyond the comparison to the baseline and the aggregate fusion outcomes.
+The BLIP results show that this approach performed poorly under the evaluated protocol. Across all datasets and image types, BLIP accuracy remained below 13\%, with the lowest value observed for WCS full-frame images. This outcome suggests that BLIP, when used without an effective species-level matching or fusion strategy, is insufficient for the fine-grained zero-shot classification task considered in this chapter.
 
-Some limitations are explicitly identifiable from the described implementation and evaluation protocol. First, the pipeline performs no train/test split and evaluates on all available images. Consequently, the reported results are limited to this evaluation setup and do not include an analysis of generalisation under separate training and testing partitions. Second, the ModernBERT representations are obtained by mean-pooling token embeddings rather than using a dedicated sentence-embedding model, which may be suboptimal for semantic similarity. Third, the method depends on an offline-generated knowledge base whose visually relevant summaries are derived from Wikipedia through LLM prompting (GPT-4o-mini). The reported text does not provide an independent evaluation of the effect of summary quality on final classification performance.
+Overall, the results support the feasibility of a training-free multimodal classification pipeline for camera trap species recognition. The proposed CLIP Fusion method improves over the baseline in most configurations and consistently outperforms standalone CLIP and BLIP. However, the gains are dataset- and image-type-dependent. The findings therefore support the use of multimodal fusion as a promising strategy for zero-shot camera trap classification, while also highlighting the importance of evaluating performance across multiple datasets and image representations.
 
-A further point concerns the mechanism used for multiple captions. Although the implementation name suggests a voting procedure, the actual method averages textual similarity scores across captions before fusion. This distinction is relevant for interpreting the behaviour of the system, because the reported results correspond to score aggregation rather than label-level majority voting.
-
-Overall, the experiment supports the feasibility of a training-free multimodal classification pipeline for camera trap species recognition. The evidence provided by the reported results shows that this approach can improve top-1 accuracy in several configurations while maintaining a consistent increase in average confidence, although the gains are not universal across all datasets and image types.
+Some limitations remain. First, the pipeline performs no train/test split and evaluates on the available images for each configuration. Consequently, the reported results are limited to this evaluation setup and do not assess generalisation under separate training and testing partitions. Second, the ModernBERT representations are obtained by mean-pooling token embeddings rather than by using a sentence-embedding model specifically optimised for semantic similarity. Third, the method depends on an offline-generated knowledge base whose visually relevant summaries are derived from Wikipedia through LLM prompting. The effect of summary quality on final classification performance is not isolated in the present experiment. Finally, although multiple captions are generated, the implemented strategy averages textual similarity scores before fusion rather than performing label-level majority voting, which should be considered when interpreting the role of caption diversity.
 
 \section{Final Remarks}
 
-This chapter described a zero-shot multimodal experiment for species classification in camera trap images based on the \textit{WildMatch-VLM-Fusion} pipeline. The method combines a VLM-derived visual similarity signal with a textual similarity signal obtained from LLM-generated image descriptions (GPT-4o-mini) and ModernBERT-based semantic matching against species summaries stored in a knowledge base. Final predictions are produced through weighted linear fusion, with no training or fine-tuning performed for the target task.
+This chapter described a zero-shot multimodal experiment for species classification in camera trap images based on the \textit{WildMatch-VLM-Fusion} pipeline. The method combines a CLIP-derived visual similarity signal with a textual similarity signal obtained from LLM-generated image descriptions and ModernBERT-based semantic matching against species summaries stored in a knowledge base. Final predictions are produced through weighted linear fusion, with no training or fine-tuning performed for the target task.
 
-The reported evaluation showed that the fusion strategy improved top-1 accuracy in four out of six baseline comparisons, with an average gain of 2.08 percentage points across the evaluated configurations. The strongest improvements were observed for Caltech cropped images and WCS full images, while slight performance decreases were observed in two full-image settings. Average confidence increased in all comparisons, although these increases did not always correspond to higher accuracy.
+The complete evaluation showed that CLIP Fusion achieved the highest accuracy in four out of six dataset--image configurations and tied with the baseline in one additional configuration. The average accuracy improvement over the baseline was approximately 2.18 percentage points. The strongest improvements were observed for Caltech cropped images and WCS full-frame images. In contrast, the only slight decrease was observed for Caltech full-frame images, where CLIP Fusion was 0.10 percentage points below the baseline.
 
-Within the context of this thesis, the experiment contributes a concrete example of how multimodal pre-trained models can be integrated into camera trap workflows without requiring task-specific model training. The results indicate that such integration can be effective under several zero-shot evaluation settings, while also highlighting limitations related to dataset dependence, confidence interpretation, encoder choice, and evaluation protocol.
+The inclusion of standalone BLIP and CLIP results provides additional context for interpreting the proposed approach. BLIP performed poorly across all configurations, whereas standalone CLIP achieved competitive results but was consistently outperformed by CLIP Fusion. These findings indicate that the fusion mechanism provides benefits beyond the use of CLIP alone and that the combination of visual and textual similarity signals is more effective than either BLIP or CLIP as isolated components under the evaluated protocol.
+
+Within the context of this thesis, the experiment contributes evidence that multimodal pre-trained models can be integrated into camera trap workflows without requiring task-specific model training. The results indicate that such integration can improve zero-shot species classification in several settings, while also highlighting limitations related to dataset dependence, image framing, encoder choice, and the construction of species-level textual knowledge bases.
