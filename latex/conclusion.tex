@@ -1,11 +1,92 @@
 \chapter{Project Proceedings}\label{cap:conclusion}
 
-....
+This chapter summarizes the current state of the thesis, consolidates the main contributions achieved so far, and presents the next steps required to complete the research. The thesis investigates the use of pre-trained multimodal models for automating camera-trap workflows in biodiversity monitoring, with emphasis on low-supervision and zero-shot settings. The work is organized around two complementary empirical directions: first, evaluating whether multimodal models can support multiple camera-trap tasks within a unified workflow; and second, examining whether visual-textual fusion can improve zero-shot species classification.
+
+\section{Conclusion}\label{sec:project_conclusion}
+
+The research developed so far supports the central motivation of the thesis: camera-trap workflows require scalable computational methods, but conventional supervised approaches often depend on large annotated datasets and may generalize poorly across domains. This limitation is especially relevant in biodiversity monitoring, where new deployments may involve different species, environmental conditions, camera locations, and image-quality patterns.
+
+The first empirical study evaluated multimodal models in three core tasks of the camera-trap workflow: empty-image filtering, species classification, and behavior identification. The results indicate that multimodal models can support these tasks, but their effectiveness depends strongly on the model, the task, the supervision regime, and the use of temporal context. Few-shot adaptation was particularly important for BLIP, while closed multimodal models such as GPT and Gemini showed competitive zero-shot performance in specific tasks. For behavior identification, sequence-based inference improved some configurations, but the benefit was not uniform across all models.
+
+The second empirical study focused on zero-shot species classification through multimodal fusion. The proposed strategy combined CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species knowledge. The results showed empirical gains in several dataset and image configurations, indicating that visual and textual signals can be complementary. However, the improvements were class-dependent and were not statistically significant over all reference methods, which requires a conservative interpretation of the results.
+
+Overall, the thesis contributes evidence that pre-trained multimodal models can reduce dependence on task-specific annotated data in camera-trap workflows, but it also shows that these models should not be treated as universally robust solutions. Their performance is conditioned by task complexity, model architecture, prompt design, image context, species characteristics, and the quality of textual knowledge. These findings support the general objective of the thesis by clarifying when and how multimodal models can be useful for biodiversity monitoring workflows under low-supervision settings.
 
 \section{Contributions}\label{sec:contrib}
 
-....
+The main contributions of this thesis are summarized as follows:
 
-\section{Next Steps and Schedule}\label{sec:sched}
+\begin{itemize}
 
-....
+\item A structured analysis of automated camera-trap workflows, with emphasis on empty-image filtering, species classification, and behavior identification as core ecological vision tasks.
+
+\item An empirical evaluation of pre-trained multimodal models, including CLIP, BLIP, GPT, and Gemini, across multiple camera-trap tasks under zero-shot and few-shot settings.
+
+\item An assessment of sequence-based inference for behavior identification, showing that temporal context can improve performance in some configurations but does not benefit all models uniformly.
+
+\item A zero-shot multimodal fusion strategy for species classification that integrates CLIP-based visual similarity with textual similarity derived from language-model-generated descriptions and species-level textual knowledge.
+
+\item An empirical comparison of the proposed fusion strategy against reference configurations across different camera-trap datasets and image settings, including full-frame and cropped images.
+
+\item A discussion of the conditions and limitations that affect the use of multimodal models in camera-trap workflows, including dependence on model architecture, supervision regime, image quality, prompt design, and textual knowledge quality.
+
+\end{itemize}
+
+\section{Current Status of the Project}\label{sec:current_status}
+
+At the current stage, the thesis has established its theoretical foundation, reviewed the main related work, and developed two empirical studies aligned with the general objective. The first study addresses the use of multimodal models across multiple camera-trap tasks. The second study examines a zero-shot fusion strategy for species classification. Together, these studies provide the empirical basis for the thesis contributions.
+
+The remaining work is mainly related to consolidation, refinement, and final validation. This includes improving the integration between chapters, strengthening the discussion of limitations, reviewing terminology consistency, verifying the reproducibility of experimental descriptions, refining figures and tables, and preparing the final version of the manuscript.
+
+\section{Next Steps}\label{sec:next_steps}
+
+The next steps required to complete the thesis are:
+
+\begin{enumerate}
+
+\item \textbf{Refine the Introduction and problem statement.} The motivation, challenges, hypotheses, objectives, and contributions should be aligned so that all parts of the Introduction converge toward the general objective of the thesis.
+
+\item \textbf{Consolidate the experimental chapters.} The descriptions of datasets, models, prompts, evaluation metrics, and statistical analyses should be reviewed to ensure consistency across chapters.
+
+\item \textbf{Expand the discussion of limitations.} The final manuscript should explicitly discuss the limitations of zero-shot and few-shot evaluation, prompt sensitivity, possible model exposure to public datasets, computational cost, API dependence, class-level variation, and the lack of statistically significant differences in some comparisons.
+
+\item \textbf{Improve cross-chapter coherence.} The terminology used throughout the thesis should be standardized, especially terms such as camera trap, camera-trap workflow, multimodal model, vision-language model, zero-shot, few-shot, low-supervision, and visual-textual fusion.
+
+\item \textbf{Review tables, figures, and LaTeX formatting.} All tables and figures should be checked for consistency, readability, caption quality, and correct references in the text.
+
+\item \textbf{Prepare the final synthesis.} The conclusion should clearly state what was demonstrated, what remains limited, and how the findings answer the hypotheses and objectives.
+
+\item \textbf{Conduct final proofreading and advisor review.} The complete manuscript should be revised for academic style, grammar, citation consistency, and compliance with the graduate program formatting requirements.
+
+\end{enumerate}
+
+\section{Schedule}\label{sec:sched}
+
+Table~\ref{tab:project_schedule} presents a proposed schedule for completing the remaining stages of the thesis. The schedule is expressed in relative months and should be converted into calendar dates according to the official institutional deadline for submission and defense.
+
+\begin{table}[htbp]
+\centering
+\caption{Proposed schedule for completing the thesis.}
+\label{tab:project_schedule}
+\begin{tabular}{p{2.5cm} p{8.5cm} p{4cm}}
+\hline
+\textbf{Period} & \textbf{Activity} & \textbf{Expected Output} \\
+\hline
+Month 1 & Revise the Introduction, hypotheses, objectives, and contributions to ensure alignment with the general objective. & Revised introductory chapter. \\
+\hline
+Month 2 & Review the fundamentals and related work chapters, emphasizing their connection to multimodal models, zero-shot learning, few-shot learning, and visual-textual fusion. & Improved theoretical and literature chapters. \\
+\hline
+Month 3 & Consolidate the first experimental chapter, including task definitions, model descriptions, results, class-wise analyses, and limitations. & Revised Chapter~\ref{cap:experiment_01}. \\
+\hline
+Month 4 & Consolidate the second experimental chapter, including the fusion strategy, evaluation protocol, statistical analysis, species-level discussion, and limitations. & Revised Chapter~\ref{cap:experiment_02}. \\
+\hline
+Month 5 & Write and refine the final synthesis, including conclusions, contributions, limitations, and future work. Review all figures, tables, citations, and LaTeX formatting. & Complete thesis draft. \\
+\hline
+Month 6 & Incorporate advisor and committee feedback, perform final proofreading, check formatting requirements, and prepare the defense materials. & Final manuscript and defense presentation. \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Final Remarks}\label{sec:final_remarks_project}
+
+The remaining work is focused on improving the coherence, precision, and presentation of the thesis rather than changing its central research direction. The empirical studies already support the investigation of multimodal models for low-supervision camera-trap workflows. The final stage should therefore emphasize integration: the Introduction must clearly motivate the research problem, the experimental chapters must provide evidence for the hypotheses, and the final conclusion must explain the conditions under which pre-trained multimodal models and visual-textual fusion can contribute to biodiversity monitoring.
