@@ -4,23 +4,23 @@ Thesis structure:
 1.1 Context and motivation
     - Importance of biodiversity monitoring
     - Role of camera traps in biodiversity monitoring
-    - Limitations of manual analysis of camera-trap data
-    - Need for automated analysis of camera-trap data
-    - Potential of computer vision in automated analysis of camera-trap data
-1.2 Challenges in computer vision for camera-trap data analysis
-    - Variability in camera-trap data (e.g., lighting conditions, occlusions, species diversity)
+    - Limitations of manual analysis of camera trap data
+    - Need for automated analysis of camera trap data
+    - Potential of computer vision in automated analysis of camera trap data
+1.2 Challenges in computer vision for camera trap data analysis
+    - Variability in camera trap data (e.g., lighting conditions, occlusions, species diversity)
     - Imbalanced datasets (e.g., rare species, common species)
     - Need for large annotated datasets for training computer vision models
     - Computational resources required for training and deploying computer vision models
     - Ethical considerations in using computer vision for biodiversity monitoring (e.g., privacy concerns, potential biases in data and models)
-1.3 Computer vision tasks in automated analysis of camera-trap data
+1.3 Computer vision tasks in automated analysis of camera trap data
     - Empty image detection
     - Species identification
     - Individual identification
     - Behavior analysis
 1.4 Research Hypotheses
-    - LLMs can be used to improve the accuracy of empty image detection in camera-trap data.
-    - Using CLIP Fusion for empty image detection will improve the accuracy of species identification in camera-trap data.
+    - LLMs can be used to improve the accuracy of empty image detection in camera trap data.
+    - Using CLIP Fusion for empty image detection will improve the accuracy of species identification in camera trap data.
 1.5 Objectives
     - List of objectives related to the thesis
 1.6 Publications

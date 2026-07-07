@@ -44,7 +44,7 @@ The WildMatch-VLM-Fusion pipeline consists of a visual matching branch and a tex
 \label{fig:pipeline}
 \end{figure*}
 
-The visual branch utilizes the CLIP ViT-L/14 model. The input image is encoded into an $L_2$-normalized embedding $e_{\text{img}}$. Each species summary is prepended with a camera-trap prompt and encoded by the CLIP text encoder to produce a cached embedding $e^{\text{CLIP}}_s$. The visual score $v_s$ is calculated as the cosine similarity between the image embedding and the species embedding:
+The visual branch utilizes the CLIP ViT-L/14 model. The input image is encoded into an $L_2$-normalized embedding $e_{\text{img}}$. Each species summary is prepended with a camera trap prompt and encoded by the CLIP text encoder to produce a cached embedding $e^{\text{CLIP}}_s$. The visual score $v_s$ is calculated as the cosine similarity between the image embedding and the species embedding:
 
 $$v_s=\cos(e_{\text{img}}, e^{\text{CLIP}}_s)$$
 
