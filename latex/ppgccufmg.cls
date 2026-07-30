@@ -526,7 +526,7 @@ Campus Universit\'{a}rio Senador Arthur Virg\'{i}lio Filho, como requisito
 
 \newenvironment{ppgcctitlingpageodd}%
   {%
-    \cleardoublepage
+    \if@twoside\cleardoublepage\else\clearpage\fi
     \thispagestyle{titlingpage}%
   }{%
     \thispagestyle{titlingpage}%

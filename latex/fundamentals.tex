@@ -1,8 +1,6 @@
 \chapter{Fundamentals}\label{cap:fundamentals}
 
-This chapter introduces the fundamental concepts that underpin this work. We begin with an overview of key machine learning topics relevant to our study, including computer vision architectures, multimodal large language models, image preprocessing methods, training strategies, and evaluation metrics. We then examine the main challenges and limitations associated with these approaches, situating them within the broader context of our research.
-
-Finally, we summarize the core ideas discussed in this chapter and explain how they connect to the remainder of the thesis. Overall, this chapter provides the conceptual and technical foundation necessary to understand the methods and results presented in the subsequent chapters, particularly for readers who may not be familiar with the underlying principles of machine learning and computer vision.
+This chapter introduces the fundamental concepts that support this work. We begin with an overview of key machine learning topics relevant to our study, including computer vision architectures, multimodal large language models, image preprocessing methods, training strategies, and evaluation metrics. We then examine the main challenges and limitations associated with these approaches, situating them within the broader context of our research. Finally, we summarize the core ideas discussed in this chapter and explain how they connect to the remainder of the thesis.
 
 \section{Camera Traps, Workflow, and Investigated Tasks}
 \label{sec:camera traps-workflow}
@@ -11,11 +9,43 @@ Finally, we summarize the core ideas discussed in this chapter and explain how t
 
 Camera traps are fixed sensing devices used to record wildlife in natural environments with minimal human interference \cite{burton2015wildlife}. They are typically activated by motion sensors or configured to capture images at predefined time intervals \cite{swann2011evaluating}. Because they can operate continuously over long periods, camera traps have become an important tool for biodiversity monitoring and ecological studies, supporting analyses of species presence, abundance, activity patterns, and behavior \cite{bruce2025large, tuia2022perspectives}.
 
+
 A camera trap deployment usually produces large collections of images or short image sequences. These data often contain useful records of animals, but they also include many non-informative images caused by vegetation movement, lighting variation, sensor noise, or other environmental triggers \cite{beery2018recognition}. In addition, animal images may be difficult to interpret because of low illumination, occlusion, camouflage, small object size, motion blur, or animals appearing far from the camera \cite{schneider2020three}. These characteristics make camera trap analysis a challenging computer vision problem \cite{beery2023wild}.
 
-\subsection{camera trap Analysis Workflow}
 
-A typical camera trap workflow starts with data acquisition in the field, followed by data organization, image screening, annotation, and extraction of ecological information \cite{ahumada2020wildlife}. After images are collected from the devices, they are usually grouped by camera location, date, time, and capture event \cite{beery2019efficient}. In many datasets, multiple consecutive images are associated with the same trigger event, forming short sequences that may provide complementary views of the same animal \cite{banerjee2022sieving}.
+\begin{figure*}[!ht]
+\centering
+\begin{minipage}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_example.jpg}
+  \captionof{figure}{Serengeti camera trap dataset example.}
+  \label{fig:serengeti_example}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/caltech_example.jpg}
+  \captionof{figure}{Caltech camera trap dataset example.}
+  \label{fig:caltech_example}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/wcs_example.jpg}
+  \captionof{figure}{WCS camera trap dataset example.}
+  \label{fig:wcs_example}
+\end{minipage}
+\end{figure*}
+
+\subsection{Camera trap Analysis Workflow}
+
+A typical camera trap workflow starts with data acquisition in the field, followed by data organization, image screening, annotation, and extraction of ecological information \cite{ahumada2020wildlife}. After images are collected from the devices, they are usually grouped by camera location, date, time, and capture event \cite{beery2019efficient}. In many datasets, multiple consecutive images are associated with the same trigger event (Figure ~\ref{fig:serengeti_sequence_example}), forming short sequences that may provide complementary views of the same animal \cite{banerjee2022sieving}.
+
+
+\begin{figure*}[!ht]
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_sequence_example.png}
+  \captionof{figure}{Serengeti camera trap sequence example.}
+  \label{fig:serengeti_sequence_example}
+\end{figure*}
 
 The first computational step is often the removal of empty images, since many frames do not contain animals. This filtering stage reduces the amount of data that must be manually inspected and can improve the efficiency of subsequent analyses \cite{cunha2021filtering}. After empty images are removed, the remaining images may be processed to identify the animal species, count individuals, detect regions containing animals, or infer attributes such as behavior \cite{norouzzadeh2018automatically}. The final outputs can then support ecological analyses, including species occupancy, diversity estimation, activity pattern analysis, and conservation monitoring \cite{tuia2022perspectives, lonsinger2024efficacy}.
 
@@ -27,9 +57,50 @@ This thesis focuses on three core tasks in camera trap analysis: empty-image fil
 
 Empty-image filtering is formulated as a binary classification problem. The goal is to determine whether an image contains an animal or corresponds to an empty frame. This task is important because empty images often represent a large portion of camera trap datasets and can substantially increase the cost of manual annotation \cite{yang2021systematic, alencar2023context}. In this thesis, empty-image filtering is used to evaluate whether multimodal models can support an initial screening stage with limited task-specific supervision \cite{alencar2024zero}.
 
-Species classification aims to assign an animal image to one of a predefined set of candidate species. This task is central to biodiversity monitoring because species labels are often required before ecological indicators can be estimated \cite{tabak2019machine}. In camera trap data, species classification is challenging due to class imbalance, domain shift across camera locations, visually similar species, and variation in image quality \cite{beery2018recognition, schneider2020three, cunha2023bag}. This thesis investigates species classification both as a direct multimodal recognition task and as a zero-shot multimodal fusion problem that combines visual and textual similarity \cite{fabian2023multimodal, radford2021learning}.
+Species classification aims to assign an animal image to one of a predefined set of candidate species. This task is central to biodiversity monitoring because species labels are often required before ecological indicators can be estimated \cite{tabak2019machine}. In camera trap data, species classification is challenging due to class imbalance, domain shift across camera locations (Figure \ref{fig:domain_shift_across_camera}), visually similar species, and variation in image quality \cite{beery2018recognition, schneider2020three, cunha2023bag}. This thesis investigates species classification both as a direct multimodal recognition task and as a zero-shot multimodal fusion problem that combines visual and textual similarity \cite{fabian2023multimodal, radford2021learning}.
 
-Behavior identification aims to infer the activity performed by the animal, such as moving, eating, or resting. Compared with empty-image filtering and species classification, behavior identification is more dependent on posture, context, and sometimes temporal information \cite{schindler2021identification}. For this reason, this thesis considers both single-image inference and sequence-based inference when evaluating behavior identification \cite{brookes2025panaf}. Recent advancements also suggest exploring vision-language foundation models to execute this categorization task under zero-shot conditions \cite{dussert2025zero}.
+\begin{figure*}[!ht]
+
+\centering
+\begin{minipage}[b]{0.25\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_zebra_1.jpeg}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.25\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_zebra_2.jpeg}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.25\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_zebra_3.jpeg}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.25\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_zebra_4.jpeg}
+\end{minipage}
+  \captionof{figure}{Examples of domain shift across camera locations. Images of the same species (zebra) captured by different camera traps in the Snapshot Serengeti dataset exhibit substantial variations in illumination, background, vegetation, viewpoint, and imaging conditions, despite sharing the same class label.}
+  \label{fig:domain_shift_across_camera}
+\end{figure*}
+
+Behavior identification aims to infer the activity performed by the animal, such as moving, eating, or resting (Figure ~\ref{fig:moving_eating_resting}). Compared with empty-image filtering and species classification, behavior identification is more dependent on posture, context, and sometimes temporal information \cite{schindler2021identification}. For this reason, this thesis considers both single-image inference and sequence-based inference when evaluating behavior identification \cite{brookes2025panaf}. Recent advancements also suggest exploring vision-language foundation models to execute this categorization task under zero-shot conditions \cite{dussert2025zero}.
+
+\begin{figure*}[!ht]
+\centering
+\begin{minipage}[b]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_moving.jpeg}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_eating.jpeg}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/serengeti_resting.jpeg}
+\end{minipage}\hfill
+  \captionof{figure}{Examples of animal behaviors in camera trap images from the Snapshot Serengeti dataset. Representative images illustrating three common behaviors annotated in the dataset: moving, eating, and resting.}
+  \label{fig:moving_eating_resting}
+\end{figure*}
 
 Together, these tasks represent a simplified but practical camera trap workflow: first identifying whether an image contains an animal, then recognizing the species, and finally inferring behavioral information when possible. This structure provides the basis for the methodological choices discussed in the following chapters, particularly the use of zero-shot, few-shot, and multimodal learning strategies \cite{snell2017prototypical, xian2017zero, chen2026cameratrap}.
 

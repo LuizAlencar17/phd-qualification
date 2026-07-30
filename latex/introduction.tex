@@ -10,17 +10,17 @@ The scale of these datasets creates a major processing bottleneck. For example, 
 
 Deep learning has been widely adopted to reduce this manual effort. Existing methods have been applied to empty-image filtering~\citep{mononen2025active, yousif2019animal, yang2024systematic, cunha2021filtering}, species classification~\citep{chen2023applying, velez2023evaluation, beery2018recognition, norouzzadeh2018automatically}, individual counting~\citep{norouzzadeh2018automatically, norouzzadeh2021deep, arshad2020my, wang2022deep}, and behavior recognition~\citep{schindler2021identification, bain2021automated, binta2023animal, lu2023mammalclub}. In addition, platforms such as MegaDetector~\citep{beery2019efficient}, MLWIC2~\citep{tabak2020improving}, Wildlife Insights~\citep{ahumada2020wildlife}, Conservation AI~\citep{chalmers2019conservation}, IFLA~\citep{xi2021image}, and Animal Scanner~\citep{yousif2019animal} have made automated camera trap processing more accessible to researchers and practitioners.
 
-Despite these advances, many supervised computer-vision systems still depend on large annotated datasets from the target domain. This dependence is problematic in biodiversity monitoring because new deployments often involve different species, camera locations, lighting conditions, backgrounds, and sampling protocols. As a result, models trained in one setting may not generalize well to another~\citep{beery2021scaling, yang2021systematic, zhu2022class, malik2021two, cunha2023bag}. These limitations motivate the investigation of approaches that can operate with little or no task-specific training data.
+Despite these advances, many supervised computer-vision systems depend on large annotated datasets from the target domain. This dependence is problematic in biodiversity monitoring because new deployments often involve different species, camera locations, lighting conditions, backgrounds, and sampling protocols. As a result, models trained in one setting may not generalize well to another~\citep{beery2021scaling, yang2021systematic, zhu2022class, malik2021two, cunha2023bag}. These limitations motivate the investigation of approaches that can operate with little or no task-specific training data.
 
 Pre-trained multimodal models, especially vision-language models, offer a promising direction for this problem. By aligning visual and textual representations, these models can use natural-language descriptions, prompts, or external textual knowledge to perform recognition tasks beyond the labels seen during training. This property makes them relevant for zero-shot and few-shot learning settings, where the objective is to reduce dependence on large labeled datasets. In the context of camera trap workflows, such models may support core tasks such as empty-image filtering, species classification, and behavior identification while requiring less task-specific supervision than conventional supervised pipelines.
 
 Therefore, the gap addressed in this thesis is not only the lack of automation for camera trap data, but the limited understanding of how pre-trained multimodal models behave when applied to ecological vision tasks under realistic low-supervision constraints. Existing supervised systems can be effective when sufficient annotated data are available, but their dependence on target-domain labels limits transfer to new deployments. At the same time, vision-language models offer zero-shot and few-shot capabilities, but their reliability across camera trap tasks, datasets, image conditions, and fusion strategies remains insufficiently characterized. This thesis addresses this gap by evaluating multimodal models across core workflow tasks and by investigating whether visual-textual fusion can improve zero-shot species classification.
 
-\section{Challenges in Computer Vision for camera trap Data Analysis}
+\section{Challenges for camera trap Data Analysis}
 
 Extracting reliable information from camera trap images is difficult because the visual conditions are often uncontrolled. Animals may appear far from the camera, partially occluded, camouflaged, blurred by motion, or captured under poor illumination~\citep{villa2017towards, norouzzadeh2018automatically, beery2018recognition, gomez2016animal}. In some cases, only part of the animal is visible, or the image contains cluttered vegetation and background structures that make visual interpretation difficult even for specialists.
 
-camera trap datasets also present statistical and ecological challenges. They often contain many empty images, strong class imbalance, long-tailed species distributions, annotation errors, and temporal or spatial dependence among observations~\citep{norouzzadeh2018automatically, schneider2020three, brookes2025panaf, bevan2025deep}. Rare species may appear in only a small number of images, while common species dominate the training data. This imbalance can reduce sensitivity to species of high conservation interest.
+Camera trap datasets also present statistical and ecological challenges. They often contain many empty images, strong class imbalance, long-tailed species distributions, annotation errors, and temporal or spatial dependence among observations~\citep{norouzzadeh2018automatically, schneider2020three, brookes2025panaf, bevan2025deep}. Rare species may appear in only a small number of images, while common species dominate the training data. This imbalance can reduce sensitivity to species of high conservation interest.
 
 Domain generalization is another central challenge. Because camera traps are stationary, models can learn correlations between species labels and site-specific backgrounds in the training data. These correlations may not hold when the same model is deployed in a new location or season~\citep{beery2018recognition, schneider2020three, tabak2019machine, norman2023can}. Consequently, high performance on a familiar dataset does not necessarily imply robust performance in a new ecological setting.
 
@@ -47,7 +47,7 @@ This thesis is guided by three research hypotheses concerning the use of pre-tra
 \begin{description}
 \item[H1] Pre-trained multimodal models can support core camera trap tasks, including empty-image filtering, species classification, and behavior identification, with limited or no task-specific supervision, although their effectiveness varies across tasks and model architectures.
 
-\item[H2] In zero-shot species classification, combining CLIP-based visual similarity with language-based textual similarity can improve top-1 accuracy relative to standalone visual similarity and competitive zero-shot baselines, but the magnitude and consistency of the gains depend on the dataset, image setting, and species characteristics.
+\item[H2] In zero-shot species classification, combining visual similarity with language-based textual similarity can improve top-1 accuracy relative to standalone visual similarity and competitive zero-shot baselines, but the magnitude and consistency of the gains depend on the dataset, image setting, and species characteristics.
 
 \item[H3] The usefulness of multimodal models in camera trap workflows is conditional rather than universal: performance is expected to depend on supervision regime, prompt design, temporal context, image quality, species-level visual distinctiveness, and the quality of external textual knowledge.
 \end{description}
@@ -92,6 +92,30 @@ The intended contributions of this thesis are as follows:
 \item A methodological basis for reducing dependence on large annotated datasets in camera trap workflows while preserving practical relevance for biodiversity monitoring.
 
 \end{itemize}
+
+\section{Publications} 
+
+This doctoral research proposal builds upon the following peer-reviewed publications, which establish the scientific foundation of the proposed research. Each publication addresses a different aspect of multimodal artificial intelligence for biodiversity monitoring using camera traps and represents a successive stage in the development of this research.
+
+\begin{enumerate}
+
+\item \textbf{Zero and Few-Shot Learning with Modern MLLMs to Filter Empty Images in Camera Trap Data}. Proceedings of the \textit{Conference on Graphics, Patterns and Images (SIBGRAPI)}, 2024.
+
+This publication investigates the use of modern multimodal large language models (MLLMs) for the task of filtering empty images in camera-trap datasets. The study evaluates CLIP, BLIP, GPT-4o, and Gemini under zero-shot and few-shot learning settings and compares their performance with a supervised ResNet50-Siamese baseline. The results demonstrate that few-shot prompting substantially improves the effectiveness of multimodal models for empty-image filtering, although supervised approaches remain more robust in challenging environmental conditions. This work forms the basis of the empty-image filtering study presented in this thesis.
+
+\item \textbf{Advancing Biodiversity Monitoring by Integrating Multimodal AI Models into Camera Trap Workflow}. \textit{Journal of the Brazilian Computer Society (JBCS)}, 2026.
+
+This journal article extends the previous study by investigating the use of multimodal foundation models throughout a broader camera-trap workflow. It evaluates CLIP, BLIP, GPT, and Gemini in three core biodiversity monitoring tasks: empty-image filtering, species classification, and animal behavior identification. The study compares zero-shot and few-shot learning strategies and also analyzes the use of image sequences for behavior recognition. The findings show that few-shot learning and temporal information substantially improve performance in several tasks, providing a comprehensive assessment of multimodal models for biodiversity monitoring.
+
+\item \textbf{Zero-Shot Multimodal Fusion for Species Classification in Camera Trap Images}. Proceedings of the \textit{Conference on Graphics, Patterns and Images (SIBGRAPI)}, 2026 (accepted for publication).
+
+This publication proposes WildMatch-VLM-Fusion, a training-free multimodal fusion strategy for zero-shot species classification in camera-trap images. The method combines CLIP-based visual similarity with textual similarity derived from large language model image descriptions and species descriptions encoded with ModernBERT. Experimental results on the Caltech, Snapshot Serengeti, and WCS datasets show that the proposed fusion strategy improves classification accuracy in most evaluated scenarios while requiring no task-specific training. This work constitutes the second main experimental contribution of the thesis and complements the broader evaluation of multimodal models presented in the previous publication.
+
+\end{enumerate}
+
+The publications presented above provide the scientific basis for this doctoral research proposal. They represent successive stages of the investigation, beginning with empty-image filtering, expanding to a comprehensive multimodal camera-trap workflow, and culminating in a novel zero-shot multimodal fusion strategy for species classification. Collectively, these studies demonstrate the evolution of the proposed research and support its objective of investigating multimodal artificial intelligence methods to improve biodiversity monitoring under low-supervision settings.
+
+
 
 \section{Organization of the Document}
 
