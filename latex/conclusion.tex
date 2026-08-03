@@ -6,7 +6,7 @@ This chapter summarizes the current state of the thesis, consolidates the main c
 
 The research developed so far supports the central motivation of the thesis: camera trap workflows require scalable computational methods, but conventional supervised approaches often depend on large annotated datasets and may generalize poorly across domains. This limitation is especially relevant in biodiversity monitoring, where new deployments may involve different species, environmental conditions, camera locations, and image-quality patterns.
 
-The first empirical study evaluated multimodal models in three core tasks of the camera trap workflow: empty-image filtering, species classification, and behavior identification. The results indicate that multimodal models can support these tasks, but their effectiveness depends strongly on the model, the task, the supervision regime, and the use of temporal context. Few-shot adaptation was particularly important for BLIP, while closed multimodal models such as GPT and Gemini showed competitive zero-shot performance in specific tasks. For behavior identification, sequence-based inference improved some configurations, but the benefit was not uniform across all models.
+In the first contribuition of this work, we evaluated multimodal models in three core tasks of the camera trap workflow: empty-image filtering, species classification, and behavior identification. The results indicate that multimodal models can support these tasks, but their effectiveness depends strongly on the model, the task, the supervision regime, and the use of temporal context. Few-shot adaptation was particularly important for BLIP, while closed multimodal models such as GPT and Gemini showed competitive zero-shot performance in specific tasks. For behavior identification, sequence-based inference improved some configurations, but the benefit was not uniform across all models.
 
 The second empirical study focused on zero-shot species classification through multimodal fusion. The proposed strategy combined CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species knowledge. The results showed empirical gains in several dataset and image configurations, indicating that visual and textual signals can be complementary. However, the improvements were class-dependent and were not statistically significant over all reference methods, which requires a conservative interpretation of the results.
 
@@ -14,7 +14,7 @@ Overall, the thesis contributes evidence that pre-trained multimodal models can 
 
 \section{Contributions}\label{sec:contrib}
 
-The main contributions of this thesis are summarized as follows:
+The current main contributions of this thesis are summarized as follows:
 
 \begin{itemize}
 
@@ -90,10 +90,6 @@ Months 1--2
 & Incorporate qualification committee feedback; refine the research problem, hypotheses, experimental scope, and validation criteria.
 & Revised research plan and updated thesis outline. \\
 
-Months 3--4
-& Consolidate datasets, preprocessing procedures, camera-location splits, prompts, candidate labels, evaluation metrics, and reproducibility scripts for all empirical studies.
-& Frozen experimental protocol and reproducibility package. \\
-
 Months 5--7
 & Extend and validate the multi-task evaluation of multimodal models for empty-image filtering, species classification, and behavior identification, including additional error analysis and prompt-sensitivity checks.
 & Expanded results for the multi-task multimodal evaluation. \\
@@ -115,8 +111,7 @@ Months 16--17
 & Practical feasibility and limitations section. \\
 
 Months 18--19
-& Prepare and submit manuscripts derived from the empirical studies; update related work with recent multimodal and biodiversity-monitoring literature.
-& Submitted articles and updated related work chapter. \\
+& Prepare and submit manuscripts derived from the empirical studies. \\
 
 Months 20--21
 & Integrate all chapters into a coherent thesis narrative; standardize terminology, figures, tables, citations, and cross-chapter references.
