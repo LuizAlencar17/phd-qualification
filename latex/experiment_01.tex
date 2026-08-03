@@ -1,6 +1,6 @@
 \chapter{Advancing Biodiversity Monitoring by Integrating Multimodal AI Models into Camera Trap Workflow}\label{cap:experiment_01}
 
-This chapter presents the first empirical study of the thesis, which evaluates the use of multimodal artificial intelligence models to support key stages of the camera-trap workflow in biodiversity monitoring. The study examines the application of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp to three tasks: empty-image filtering, species classification, and behavior identification. It describes the datasets, experimental protocols, evaluation metrics, and results, with emphasis on the comparison between zero-shot and few-shot settings and, for behavior analysis, between single-image and sequence-based inference. An earlier version of this study was published in \citep{alencar2024zero}; in this thesis, the experiment is integrated into the broader research problem of evaluating when multimodal models can support low-supervision camera-trap workflows.
+This chapter presents the first empirical study of the thesis, which evaluates the use of multimodal artificial intelligence models to support key stages of the camera-trap workflow in biodiversity monitoring. The study examines the application of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp to three tasks: empty-image filtering, species classification, and behavior identification. It describes the datasets, experimental protocols, evaluation metrics, and results, with emphasis on the comparison between zero-shot and few-shot settings and, for behavior analysis, between single-image and sequence-based inference. An earlier version of this study was published in \citep{alencar2024zero}. In this thesis, the experiment is integrated into the broader research problem of evaluating when multimodal models can support low-supervision camera-trap workflows.
 
 \section{Introduction}
 
@@ -118,7 +118,7 @@ Several prompt variants were tested during validation, including alternative phr
 
 \subsection{Evaluation Metrics and Statistical Reporting}
 
-Model performance was evaluated using accuracy, precision, recall, and F1-score. In addition, 95\% binomial confidence intervals were computed for accuracy using the exact Clopper--Pearson method or an equivalent normal approximation. These intervals quantify uncertainty in the observed accuracy and support comparisons between models; non-overlapping intervals were interpreted as evidence of significant performance differences.
+Model performance was evaluated using accuracy, precision, recall, and F1-score. In addition, 95\% binomial confidence intervals were computed for accuracy using the exact Clopper--Pearson method or an equivalent normal approximation. These intervals quantify uncertainty in the observed accuracy and support comparisons between models. Non-overlapping intervals were interpreted as evidence of significant performance differences.
 
 \section{Experiments and Results}
 
@@ -168,9 +168,9 @@ The confidence intervals were generally non-overlapping in the main comparisons,
 
 \subsection{Empty-image Filtering}
 
-In the empty-image filtering task, BLIP in zero-shot mode obtained the lowest performance, with accuracy of 0.0761, precision of 0.0137, recall of 0.0035, and F1-score of 0.0055. After few-shot adaptation, BLIP-FewShot improved substantially, reaching 0.9100 in all four metrics and achieving the best result for this task (see Figure ~\ref{fig:experiment_1-example_animal}).
+In the empty-image filtering task, BLIP in zero-shot mode obtained the lowest performance, with accuracy of 0.0761, precision of 0.0137, recall of 0.0035, and F1-score of 0.0055. After few-shot adaptation, BLIP-FewShot improved substantially, reaching 0.9100 in all four metrics and achieving the best result for this task (Figure ~\ref{fig:experiment_1-example_animal}).
 
-CLIP performed better than BLIP in zero-shot mode, with accuracy of 0.7987 and F1-score of 0.7959. However, its few-shot version did not improve upon this result; CLIP-FewShot obtained accuracy of 0.7588 and F1-score of 0.7587. This decrease suggests that CLIP may have been negatively affected by the limited number of available training samples.
+CLIP performed better than BLIP in zero-shot mode, with accuracy of 0.7987 and F1-score of 0.7959. However, its few-shot version did not improve upon this result. CLIP-FewShot obtained accuracy of 0.7588 and F1-score of 0.7587. This decrease suggests that CLIP may have been negatively affected by the limited number of available training samples.
 
 Among the zero-shot models, GPT obtained the highest performance in this task, with accuracy of 0.8566, precision of 0.8693, recall of 0.8562, and F1-score of 0.8552. Gemini also produced valid results, but with lower values than GPT in this binary classification setting.
 
@@ -205,7 +205,7 @@ These values show different trade-offs between empty and non-empty detection. CL
 
 \subsection{Species Classification}
 
-In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task (see Figure ~\ref{fig:experiment_1-example_species}).
+In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task (Figure ~\ref{fig:experiment_1-example_species}).
 
 CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score.
 
@@ -243,7 +243,7 @@ The class-wise analysis indicates that giraffe, hyena, and elephant were among t
 \end{figure*}
 \subsection{Behavior Identification}
 
-Behavior identification was evaluated both with single images and with image sequences (see Figure ~\ref{fig:experiment_1-example_seq}). In zero-shot mode with single images, BLIP again presented the lowest performance, with accuracy of 0.0011 and F1-score of 0.0004. Using sequences without few-shot adaptation yielded only a limited gain for BLIP-Seq, which reached accuracy of 0.0879 and F1-score of 0.0361.
+Behavior identification was evaluated both with single images and with image sequences (Figure ~\ref{fig:experiment_1-example_seq}). In zero-shot mode with single images, BLIP again presented the lowest performance, with accuracy of 0.0011 and F1-score of 0.0004. Using sequences without few-shot adaptation yielded only a limited gain for BLIP-Seq, which reached accuracy of 0.0879 and F1-score of 0.0361.
 
 With few-shot learning, however, BLIP improved substantially. BLIP-FewShot obtained accuracy of 0.7014 and F1-score of 0.7011. When image sequences were added, BLIP-FewShot-Seq achieved the best performance for this task, with accuracy of 0.7557 and F1-score of 0.7567. This result suggests that temporal context can support behavior recognition when combined with few-shot adaptation.
 
