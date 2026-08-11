@@ -82,15 +82,95 @@ Every EOG node $c$ at level $\ell$ is embedded through the same frozen text enco
 
 \subsection{Contrastive Binding and Self-Supervised Pretraining}\label{sec:contrastive_binding}
 
-For each event $i$ in the training corpus (drawn from the union of the Chapter~\ref{cap:experiment_01} and Chapter~\ref{cap:experiment_02} datasets), the visual anchor embedding $e_v^i$ is bound to each available peripheral modality embedding $e_m^i$, $m \in \{seq, cap, ekb, ctx\}$, through a symmetric InfoNCE contrastive objective, following the same principle used to align image and text in CLIP \citep{radford2021learning} and to align sequence and non-sequence modalities in FunBind \citep{boadu2025funbind}:
+\subsection{Contrastive Binding and Self-Supervised Pretraining}
+\label{sec:contrastive_binding}
 
-$$\mathcal{L}_{v,m} = -\frac{1}{N}\sum_{i=1}^{N} \log \frac{\exp\left(\cos(e_v^i, e_m^i)/\tau\right)}{\sum_{j=1}^{N} \exp\left(\cos(e_v^i, e_m^j)/\tau\right)}$$
+The central mechanism used to align the heterogeneous evidence sources in
+WildBind is contrastive binding. Rather than requiring the different
+modalities to share the same encoder, each modality is independently
+projected into a common latent space. The visual event embedding serves as
+the anchor representation, while the corresponding sequence, generated
+description, ecological knowledge, and spatiotemporal context embeddings
+provide complementary representations of the same camera-trap event.
 
-where $N$ is the batch size, $\tau$ is a learned temperature, and negative pairs $(i,j)$, $i\neq j$, are drawn from other events in the same batch. The total pretraining loss aggregates the per-modality binding losses over the subset of modalities actually available for each batch:
+For a given event $i$, the visual embedding $e_v^i$ and the corresponding
+modality embedding $e_m^i$ form a positive pair. In contrast, modality
+embeddings associated with other events in the same minibatch form negative
+pairs. The contrastive objective therefore encourages representations
+associated with the same event to become close in the shared latent space,
+while separating representations originating from different events.
+Figure~\ref{fig:contrastive_binding} illustrates the construction of positive
+and negative pairs, the resulting similarity matrix, and the aggregation of
+the modality-specific contrastive losses.
 
-$$\mathcal{L}_{bind} = \sum_{m \in \mathcal{M}} \lambda_m\, \mathcal{L}_{v,m}$$
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=6.5in]{images/contrastive_binding_infonce.png}
+\caption{Illustration of the contrastive binding objective used in WildBind. For each camera-trap event $i$, the visual anchor embedding $e_v^i$ is paired with the embedding $e_m^i$ of the corresponding modality, forming a positive pair. Embeddings from different events in the minibatch form negative pairs. The temperature-scaled cosine similarities define the similarity matrix used by the InfoNCE objective. For each modality $m$, the contrastive loss $\mathcal{L}_{v,m}$ encourages the corresponding visual--modality pair to have high similarity while separating mismatched pairs. The individual modality losses are subsequently aggregated into the multimodal binding loss $\mathcal{L}_{bind}$.}
+\label{fig:contrastive_binding}
+\end{figure*}
 
-with $\lambda_m$ weighting each modality's contribution. Only the projection heads and the temperature are trained. The underlying CLIP and ModernBERT encoders remain frozen, following the same rationale used in Chapter~\ref{cap:experiment_02} for the visual and textual branches and in FunBind for its base encoders. Because binding is always performed against the visual anchor rather than pairwise across all modalities, adding a new peripheral modality requires only one new alignment term, not $\mathcal{O}(|\mathcal{M}|^2)$ pairwise terms.
+For each visual--modality pair, the similarity between the visual anchor and
+a modality embedding is computed using temperature-scaled cosine similarity:
+
+\begin{equation}
+S_{ij}^{(m)}
+=
+\frac{
+\cos\left(e_v^i,e_m^j\right)
+}{\tau},
+\label{eq:similarity_temperature}
+\end{equation}
+
+where $e_v^i$ denotes the visual anchor embedding of event $i$,
+$e_m^j$ denotes the embedding of modality $m$ associated with event $j$,
+and $\tau$ is a learnable temperature parameter controlling the sharpness
+of the similarity distribution.
+
+For a minibatch containing $N$ events, the InfoNCE objective for modality
+$m$ is defined as:
+
+\begin{equation}
+\mathcal{L}_{v,m}
+=
+-\frac{1}{N}
+\sum_{i=1}^{N}
+\log
+\frac{
+\exp\left(S_{ii}^{(m)}\right)
+}{
+\sum_{j=1}^{N}
+\exp\left(S_{ij}^{(m)}\right)
+}.
+\label{eq:infonce}
+\end{equation}
+
+The numerator corresponds to the positive pair associated with the same
+camera-trap event, whereas the denominator contains the positive pair and
+all mismatched modality embeddings in the minibatch. Minimizing
+$\mathcal{L}_{v,m}$ therefore increases the relative similarity between
+matched visual--modality representations while reducing the similarity
+between representations originating from different events.
+
+The binding objective is applied independently to each peripheral modality
+and subsequently aggregated into a single multimodal objective:
+
+\begin{equation}
+\mathcal{L}_{bind}
+=
+\sum_{m\in\mathcal{M}}
+\lambda_m\mathcal{L}_{v,m},
+\label{eq:binding_loss}
+\end{equation}
+
+where
+$\mathcal{M}=\{\mathrm{seq},\mathrm{cap},\mathrm{ekb},\mathrm{ctx}\}$
+denotes the set of peripheral modalities and $\lambda_m$ controls the
+contribution of each modality to the overall binding objective. This
+objective encourages the visual anchor to remain consistently aligned with
+the heterogeneous evidence sources while preserving a shared latent
+representation that can subsequently be used by the uncertainty-aware
+fusion mechanism.
 
 \subsection{Zero-Shot Inference and the Fusion Gate}\label{sec:fusion_gate}
 
