@@ -80,8 +80,6 @@ Figure~\ref{fig:eog_hierarchy} illustrates this hierarchy with a concrete exampl
 
 Every EOG node $c$ at level $\ell$ is embedded through the same frozen text encoder and a level-specific trainable projection head into an embedding $e_c$ in the shared latent space. This is the mechanism that unifies the three tasks: instead of three separate classifiers, WildBind performs the same operation---similarity scoring against a set of candidate node embeddings---at each level of one hierarchy, with the candidate set at each level conditioned on the decision made at the level above.
 
-\subsection{Contrastive Binding and Self-Supervised Pretraining}\label{sec:contrastive_binding}
-
 \subsection{Contrastive Binding and Self-Supervised Pretraining}
 \label{sec:contrastive_binding}
 
