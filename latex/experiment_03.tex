@@ -6,6 +6,14 @@ This chapter proposes and specifies WildBind, a unified multimodal binding archi
 
 \section{Introduction}
 
+\subsection{Scope: Event-Level, Post-Acquisition Processing}\label{sec:wildbind_scope}
+
+Before motivating and specifying WildBind, two scope assumptions carried throughout this chapter should be stated explicitly, since they constrain how the architecture can be used in practice.
+
+First, WildBind operates on camera-trap \textit{events} -- the short bursts of consecutively triggered images sharing the same motion or interval trigger, as introduced in Section~\ref{sec:camera traps-workflow} -- rather than on single images considered independently of their acquisition context. Every modality integrated by the architecture is defined at the level of the event rather than the frame: the visual anchor is a single frame/crop \textit{selected from} the event, the burst-context embedding $e_{seq}$ pools information \textit{across} the event, and the spatiotemporal embedding $e_{ctx}$ describes properties \textit{of} the event as a whole. Even the visual-only configuration in the ablation set (Section~\ref{sec:eval_ablations}) is not equivalent to single-frame inference, since selecting the anchor itself requires scanning the full event. Consequently, WildBind produces exactly one hierarchical prediction per event, and images that cannot be grouped into events fall outside its intended scope.
+
+Second, WildBind is proposed as an \textit{offline, workflow-level} processing stage rather than an on-device or embedded model. It is intended to run after images have already been retrieved from the camera-trap devices and organized into events (Section~\ref{sec:camera traps-workflow}), and before ecological indicators are derived -- occupying the same position in the workflow as the tasks investigated in Chapter~\ref{cap:experiment_01} -- rather than the acquisition stage targeted by edge-deployed classifiers such as the one proposed by Zualkernan et al.~\citep{zualkernan2022iot}. This assumption follows directly from the computational profile of the architecture: although the base encoders (CLIP ViT-L/14, ModernBERT-base, MegaDetector) remain frozen and only lightweight projection heads and the fusion gate are trained (Section~\ref{sec:contrastive_binding}), running three separate pre-trained backbones per event, together with VLM-based caption generation for $e_{cap}$, exceeds the memory and power budget of the embedded platforms considered in edge-oriented camera-trap pipelines. WildBind is therefore best understood as a candidate replacement for the manual screening and annotation stage of the workflow described in Section~\ref{sec:camera traps-workflow}, executed in batch on a server or workstation, and not as a substitute for the in-camera triggering mechanism itself.
+
 \subsection{Motivation}
 
 The multi-task evaluation in Chapter~\ref{cap:experiment_01} and the fusion study in Chapter~\ref{cap:experiment_02} converge on the same diagnosis: standalone multimodal inference is unstable across models, tasks, and classes, and even an explicit two-branch fusion strategy only partially stabilizes this behavior, because it is task-specific, uses a fixed combination weight, and requires both evidence sources to be present for every instance. At the same time, the literature reviewed in Chapter~\ref{cap:related_work} shows a second, related gap: general-purpose unified vision-language systems for camera traps, exemplified by CameraTrap-Instruct \citep{chen2026cameratrap}, achieve strong multi-task performance (species identification, counting, and behavior classification from a single instruction-tuned model) but do so by fine-tuning a large vision-language backbone (Qwen2.5-VL-7B-Instruct with LoRA adapters) on an attribute-rich, manually curated instruction dataset. This reintroduces exactly the dependency on large annotated, task-specific data that motivates the low-supervision perspective of this thesis (Hypotheses H1--H3, Chapter~\ref{cap:introduction}).
@@ -50,7 +58,7 @@ WildBind is organized around a central visual anchor and a set of optional perip
 \toprule
 \textbf{Modality} & \textbf{Encoder (frozen base)} & \textbf{Relationship to prior work} \\
 \midrule
-Visual anchor ($e_v$) & CLIP ViT-L/14 image encoder, on the MegaDetector-selected keyframe/crop & Same visual branch as Chapter~\ref{cap:experiment_02}; for each event, MegaDetector is applied to every frame and the crop with the single highest-confidence animal detection is selected as the anchor frame. \\
+Visual anchor ($e_v$) & CLIP ViT-L/14 image encoder, on the MegaDetector-selected keyframe/crop & Same visual branch as Chapter~\ref{cap:experiment_02}; anchor-selection criteria and fallback rule detailed below. \\
 Burst context ($e_{seq}$) & Frame-level CLIP embeddings, pooled by a learned attention layer & Generalizes the \texttt{entropy\_weighted}/\texttt{mean}/\texttt{max} frame-aggregation heuristics used in Chapter~\ref{cap:experiment_01} into a trainable pooling operator. \\
 Generated description ($e_{cap}$) & ModernBERT-base encoder over VLM-generated captions & Same textual branch as WildMatch-VLM-Fusion (Chapter~\ref{cap:experiment_02}); caption generation remains a pluggable module (open or closed VLM) rather than a hard architectural dependency. \\
 Ecological knowledge ($e_{ekb}$) & ModernBERT-base encoder over species/behavior knowledge-base text & Extends the species knowledge base of Chapter~\ref{cap:experiment_02} with a newly authored behavior knowledge base (BKB, defined in Section~\ref{sec:eog}). \\
@@ -58,6 +66,24 @@ Spatiotemporal context ($e_{ctx}$) & Small MLP over cyclically encoded timestamp
 \bottomrule
 \end{tabular}
 \end{table}
+
+Because every peripheral modality is contrastively bound to the visual anchor (Section~\ref{sec:contrastive_binding}), the criterion used to select it directly shapes the rest of the architecture and is specified here in full. For a given event, MegaDetector v5~\citep{beery2019efficient} is applied independently to every frame in the burst, following the same crop-generation step already used to build the cropped-image setting of Chapter~\ref{cap:experiment_02}. Among all detections obtained across the event, the frame containing the single highest-confidence animal-class bounding box is selected as the anchor frame. The box is converted to a square region and expanded by 10\% on each side (i.e., padded by a factor of $1.2\times$ its largest dimension) before cropping, a margin intended to retain contextual pixels around the animal and avoid truncating body parts at the box boundary. The resulting crop is encoded by CLIP ViT-L/14 to obtain $e_v$.
+
+Two fallback conditions are defined for events in which no detection reaches full confidence. If the highest-confidence detection across the event falls below the acceptance threshold $\theta_{det}=0.5$ but above a lower floor of $0.1$, that detection is used as the anchor regardless, and the event is flagged with a binary \textit{low-confidence-anchor} indicator that is appended to the uncertainty vector $u$ consumed by the fusion gate (Section~\ref{sec:fusion_gate}), so that the gate can learn to discount the visual anchor's contribution for these events rather than treating it as equally reliable to a high-confidence crop. If no detection at all reaches the $0.1$ floor, the event is treated as a candidate empty sequence at the detector level: the anchor defaults to the temporally central frame of the burst, encoded without cropping.
+
+This design choice is deliberate: MegaDetector confidence determines only
+\textit{which} region of \textit{which} frame becomes the visual anchor,
+and how much the gate should trust it, not \textit{whether} the event is
+ultimately classified as empty or as containing an animal. That decision
+remains the responsibility of the Level-0 retrieval step
+(Section~\ref{sec:fusion_gate}), which combines the fused similarity score
+$f_c$ against the two Level-0 EOG nodes using every available modality --
+not only the visual anchor -- so that a missed MegaDetector detection
+lowers the quality and trustworthiness of the visual evidence rather than
+automatically determining the final presence label.
+Section~\ref{sec:limitations_discussion} returns to the consequences of
+this dependency for events in which MegaDetector fails to detect a present
+animal in any frame.
 
 \subsection{The Ecological Ontology Graph}\label{sec:eog}
 
@@ -172,7 +198,33 @@ fusion mechanism.
 
 \subsection{Zero-Shot Inference and the Fusion Gate}\label{sec:fusion_gate}
 
-At inference time, each available modality $m$ (including the visual anchor) produces its own similarity score against every EOG node $c$ under consideration at the current hierarchy level:
+Before formalizing the fusion mechanism, it is useful to state plainly what happens, and what is learned, when WildBind processes one camera-trap event. No component of WildBind is trained to directly output a species or behavior label. Instead, every prediction -- presence, species, and behavior -- is obtained through the same two-step operation, repeated once per level of the Ecological Ontology Graph (Section~\ref{sec:eog}): (i) a \textit{retrieval} step, in which each available modality embedding is compared, via cosine similarity, against the embeddings of the current candidate EOG nodes; and (ii) a \textit{fusion} step, in which a small trained network -- the gate $g_\theta$, a two-layer MLP -- combines the resulting per-modality similarity scores into a single fused score per candidate node. The predicted label at each level is simply the candidate node with the highest fused score. The only parameters exposed to labeled data at inference time are therefore those of $g_\theta$; the projection heads that produce the embeddings are frozen after contrastive pretraining (Section~\ref{sec:contrastive_binding}), so adding a previously unseen species or behavior only requires adding a textual description to the corresponding knowledge base (Section~\ref{sec:eog}), not retraining a classifier.
+
+Concretely, inference for a single event proceeds as follows:
+
+\begin{enumerate}
+\item \textbf{Modality extraction.} The visual anchor is selected and encoded into $e_v$. The
+peripheral embeddings $e_{seq}$, $e_{cap}$, $e_{ekb}$, and $e_{ctx}$ are
+computed for every modality available for this event; any modality that
+cannot be computed for a given event (e.g., a missing timestamp) is marked
+unavailable in the modality-availability mask $a$ rather than imputed with
+a default value.
+\item \textbf{Level 0 -- presence.} Every available modality embedding is
+scored against the two Level-0 EOG nodes, \textit{empty} and
+\textit{animal}. The gate combines these per-modality scores into a fused
+score $f_c$ for each node, and $\hat{y}_0=\arg\max_c f_c$ is taken as the
+presence prediction. If $\hat{y}_0=\textit{empty}$, inference stops and no
+species or behavior label is produced for the event.
+\item \textbf{Level 1 -- species.} If $\hat{y}_0=\textit{animal}$, the
+candidate set is restricted to the species nodes $S(\textit{animal})$
+conditioned on the Level-0 decision, and the same retrieval-and-fusion
+procedure yields $\hat{y}_1$.
+\item \textbf{Level 2 -- behavior.} The candidate set is further restricted
+to the behavior nodes $B(\hat{y}_1)$ conditioned on the predicted species,
+and the same procedure yields the final label $\hat{y}_2$.
+\end{enumerate}
+
+This procedure is formalized below. At inference time, each available modality $m$ (including the visual anchor) produces its own similarity score against every EOG node $c$ under consideration at the current hierarchy level:
 
 $$s_c^{(m)} = \cos\!\left(e_m,\, e_c^{(m)}\right)$$
 
@@ -180,7 +232,7 @@ where $e_c^{(m)}$ denotes the node embedding produced by the modality-specific p
 
 $$w = \mathrm{softmax}\Big(g_\theta\big([\,u\,;\,a\,]\big)\Big), \qquad f_c = \sum_{m \in \mathcal{M}\cup\{v\}} w_m \cdot a_m \cdot \hat{s}_c^{(m)}$$
 
-where $u$ is a vector of per-modality uncertainty statistics (probability margin and normalized entropy of the modality's own ranking, computed directly from the similarity scores $s_c^{(m)}$), $a \in \{0,1\}^{|\mathcal{M}|+1}$ is a binary modality-availability mask, and $\hat{s}_c^{(m)}$ denotes the min--max normalized score. The gate $g_\theta$ is a two-layer MLP trained with cross-entropy against the ground-truth EOG node at each level, using only the small labeled validation partitions already available from Chapters~\ref{cap:experiment_01} and~\ref{cap:experiment_02}. The base encoders and projection heads remain frozen during this step, so training the gate is closer in cost to calibrating a handful of hyperparameters than to fine-tuning a foundation model. When a modality is unavailable, $a_m=0$ removes it from both the softmax and the weighted sum, so predictions degrade gracefully rather than failing, directly addressing the missing-modality limitation of fixed, two-branch fusion strategies discussed in the Motivation above.
+where $u$ is a vector of per-modality uncertainty statistics (probability margin and normalized entropy of the modality's own ranking, computed directly from the similarity scores $s_c^{(m)}$), extended with the binary low-confidence-anchor indicator whenever the visual modality is available; $a \in \{0,1\}^{|\mathcal{M}|+1}$ is a binary modality-availability mask, and $\hat{s}_c^{(m)}$ denotes the min--max normalized score. The gate $g_\theta$ is a two-layer MLP trained with cross-entropy against the ground-truth EOG node at each level, using only the small labeled validation partitions already available from Chapters~\ref{cap:experiment_01} and~\ref{cap:experiment_02}. The base encoders and projection heads remain frozen during this step, so training the gate is closer in cost to calibrating a handful of hyperparameters than to fine-tuning a foundation model. When a modality is unavailable, $a_m=0$ removes it from both the softmax and the weighted sum, so predictions degrade gracefully rather than failing, directly addressing the missing-modality limitation of fixed, two-branch fusion strategies discussed in the Motivation above.
 
 Prediction proceeds hierarchically:
 
@@ -249,9 +301,9 @@ Aggregate accuracy differences across configurations and datasets will be assess
 
 Three outcomes are anticipated, framed as testable extensions of Hypotheses H1--H3 (Chapter~\ref{cap:introduction}): (i) a learned, uncertainty-aware gate should outperform both the visual-only baseline and the fixed-$\alpha$ fusion of Chapter~\ref{cap:experiment_02} on species classification, since it can adapt its reliance on textual evidence per instance rather than globally; (ii) task unification through the Ecological Ontology Graph should reduce the variance in effectiveness across tasks observed in Chapter~\ref{cap:experiment_01}, since presence, species, and behavior share the same embedding space and calibration procedure; (iii) the accuracy gap between WildBind and the supervised instruction-tuned reference is expected to be non-zero, and reporting it honestly is itself a contribution, since it quantifies the price of remaining in a low-supervision regime. The main anticipated risk is that behavior-level textual descriptions (the newly required Behavior Knowledge Base) may be substantially harder to author at a useful level of visual specificity than species descriptions were in Chapter~\ref{cap:experiment_02}, given that behavior is posture- and context-dependent rather than morphological; this risk will be mitigated by reusing the sequence-based visual evidence ($e_{seq}$) as the dominant signal for behavior, with the Behavior Knowledge Base acting only as a secondary re-ranking signal, mirroring the comparatively lower weight ($1-\alpha=0.3$) already given to textual evidence relative to the visual signal in Chapter~\ref{cap:experiment_02}.
 
-\section{Discussion: Positioning and Limitations}
+\section{Discussion: Positioning and Limitations}\label{sec:limitations_discussion}
 
-WildBind is deliberately scoped as a methodological and architectural contribution rather than a claim of universal superiority. Three limitations should be acknowledged from the outset of the proposal. First, the learned gate, however lightweight, reintroduces a small amount of task-specific supervision that the purely zero-shot components of this thesis (Chapters~\ref{cap:experiment_01} and~\ref{cap:experiment_02}) avoided. This is a deliberate trade-off, justified by the expectation that a few hundred labeled calibration events are sufficient to train a two-layer gate, several orders of magnitude less than the data required to instruction-tune a vision-language model. Second, the Ecological Ontology Graph assumes a closed candidate set at each level, so genuinely novel species or behaviors still require adding a textual description to the corresponding knowledge base, a limitation shared with WildMatch-VLM-Fusion and with the sequence-anchored zero-shot mode of FunBind. Third, the reliance on MegaDetector for keyframe and crop selection inherits any systematic detection failures of that model. This dependency is carried over from the same detection pipeline already used in Chapter~\ref{cap:experiment_01} and is treated here as an explicit design choice rather than an oversight.
+WildBind is deliberately scoped as a methodological and architectural contribution rather than a claim of universal superiority. Three limitations should be acknowledged from the outset of the proposal. First, the learned gate, however lightweight, reintroduces a small amount of task-specific supervision that the purely zero-shot components of this thesis (Chapters~\ref{cap:experiment_01} and~\ref{cap:experiment_02}) avoided. This is a deliberate trade-off, justified by the expectation that a few hundred labeled calibration events are sufficient to train a two-layer gate, several orders of magnitude less than the data required to instruction-tune a vision-language model. Second, the Ecological Ontology Graph assumes a closed candidate set at each level, so genuinely novel species or behaviors still require adding a textual description to the corresponding knowledge base, a limitation shared with WildMatch-VLM-Fusion and with the sequence-anchored zero-shot mode of FunBind. Third, the reliance on MegaDetector for keyframe and crop selection inherits any systematic detection failures of that model. If MegaDetector fails to produce a confident detection ($\geq\theta_{det}=0.5$) in any frame of an event that in fact contains an animal -- for example, a small, camouflaged, or heavily occluded individual, a known failure mode discussed in Section~\ref{sec:camera traps-workflow} -- the anchor either falls back to a low-confidence crop (flagged as such to the gate) or, in the worst case, to an uncropped central frame, which weakens exactly the modality the architecture relies on most for the hardest cases. The Level-0 retrieval step can still recover the correct presence label from peripheral evidence in this situation, but only if at least one other modality is available for the event; when it is not, WildBind inherits the detector's error. This dependency is carried over from the same detection pipeline already used to build the cropped-image setting in Chapter~\ref{cap:experiment_02} and is treated here as an explicit design choice rather than an oversight.
 
 \section{Final Remarks}
 
