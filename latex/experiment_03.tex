@@ -49,7 +49,7 @@ predictions.
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/wildbind_pipeline.png}
-\caption{Overview of the WildBind architecture. At the event level, MegaDetector v5 selects an anchor frame and crop, while five complementary modalities---visual anchor ($e_v$), burst context ($e_{seq}$), generated description ($e_{cap}$), ecological knowledge ($e_{ekb}$), and spatiotemporal context ($e_{ctx}$)---are projected into a shared latent space. The visual anchor is contrastively bound to the peripheral modalities through an InfoNCE objective. At inference time, modality-specific similarity scores are fused by an uncertainty-aware gate and evaluated hierarchically over the Ecological Ontology Graph (EOG): presence, species, and behavior. The retrieval--fusion procedure is repeated at each level with the candidate set restricted by the previous decision; if $\hat{y}_0=\mathrm{Empty}$, inference terminates without producing species or behavior predictions.}
+\caption{Overview of the WildBind architecture. At the event level, MegaDetector v5 selects an anchor frame and crop, while four complementary modalities---visual anchor ($e_v$), burst context ($e_{seq}$), generated description ($e_{cap}$), and spatiotemporal context ($e_{ctx}$)---are projected into a shared latent space. The visual anchor is contrastively bound to the peripheral modalities through an InfoNCE objective. At inference time, modality-specific similarity scores are fused by an uncertainty-aware gate and evaluated hierarchically over the Ecological Ontology Graph (EOG): presence, species, and behavior. The retrieval--fusion procedure is repeated at each level with the candidate set restricted by the previous decision; if $\hat{y}_0=\mathrm{Empty}$, inference terminates without producing species or behavior predictions.}
 \label{fig:wildbind_pipeline}
 \end{figure*}
 
@@ -69,8 +69,7 @@ WildBind is organized around a central visual anchor and a set of optional perip
 Visual anchor ($e_v$) & CLIP ViT-L/14 image encoder, on the MegaDetector-selected keyframe/crop & Same visual branch as Chapter~\ref{cap:experiment_02}; anchor-selection criteria and fallback rule detailed below. \\
 Burst context ($e_{seq}$) & Frame-level CLIP embeddings, pooled by a learned attention layer & Generalizes the \texttt{entropy\_weighted}/\texttt{mean}/\texttt{max} frame-aggregation heuristics used in Chapter~\ref{cap:experiment_01} into a trainable pooling operator. \\
 Generated description ($e_{cap}$) & ModernBERT-base encoder over VLM-generated captions & Same textual branch as WildMatch-VLM-Fusion (Chapter~\ref{cap:experiment_02}); caption generation remains a pluggable module (open or closed VLM) rather than a hard architectural dependency. \\
-Ecological knowledge ($e_{ekb}$) & ModernBERT-base encoder over species/behavior knowledge-base text & Extends the species knowledge base of Chapter~\ref{cap:experiment_02} with a newly authored behavior knowledge base (BKB, defined in Section~\ref{sec:eog}). \\
-Spatiotemporal context ($e_{ctx}$) & Small MLP over cyclically encoded timestamp, day period, and camera-location embedding & Turns timestamp, day-period, and location metadata into a dedicated learned embedding rather than folding it into free-text prompts; used together with $e_{ekb}$ in the WildBind -- visual + context and WildBind -- full configurations (Section~\ref{sec:eval_ablations}). \\
+Spatiotemporal context ($e_{ctx}$) & Small MLP over cyclically encoded timestamp, day period, and camera-location embedding & Turns timestamp, day-period, and location metadata into a dedicated learned embedding rather than folding it into free-text prompts; used in the WildBind -- visual + context and WildBind -- full configurations (Section~\ref{sec:eval_ablations}). \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -117,13 +116,7 @@ Every EOG node $c$ at level $\ell$ is embedded through the same frozen text enco
 \subsection{Contrastive Binding and Self-Supervised Pretraining}
 \label{sec:contrastive_binding}
 
-The central mechanism used to align the heterogeneous evidence sources in
-WildBind is contrastive binding. Rather than requiring the different
-modalities to share the same encoder, each modality is independently
-projected into a common latent space. The visual event embedding serves as
-the anchor representation, while the corresponding sequence, generated
-description, ecological knowledge, and spatiotemporal context embeddings
-provide complementary representations of the same camera-trap event.
+The central mechanism used to align the heterogeneous evidence sources in WildBind is contrastive binding. Rather than requiring the different modalities to share the same encoder, each modality is independently projected into a common latent space. The visual event embedding serves as the anchor representation, while the corresponding sequence, generated description, and spatiotemporal context embeddings provide complementary representations of the same camera-trap event.
 
 For a given event $i$, the visual embedding $e_v^i$ and the corresponding
 modality embedding $e_m^i$ form a positive pair. In contrast, modality
@@ -196,13 +189,8 @@ and subsequently aggregated into a single multimodal objective:
 \end{equation}
 
 where
-$\mathcal{M}=\{\mathrm{seq},\mathrm{cap},\mathrm{ekb},\mathrm{ctx}\}$
-denotes the set of peripheral modalities and $\lambda_m$ controls the
-contribution of each modality to the overall binding objective. This
-objective encourages the visual anchor to remain consistently aligned with
-the heterogeneous evidence sources while preserving a shared latent
-representation that can subsequently be used by the uncertainty-aware
-fusion mechanism.
+$\mathcal{M}=\{\mathrm{seq},\mathrm{cap},\mathrm{ctx}\}$
+denotes the set of peripheral modalities and $\lambda_m$ controls the contribution of each modality to the overall binding objective. This objective encourages the visual anchor to remain consistently aligned with the heterogeneous evidence sources while preserving a shared latent representation that can subsequently be used by the uncertainty-aware fusion mechanism.
 
 \subsection{Zero-Shot Inference and the Fusion Gate}\label{sec:fusion_gate}
 
@@ -211,12 +199,8 @@ Before formalizing the fusion mechanism, it is useful to state plainly what happ
 Concretely, inference for a single event proceeds as follows:
 
 \begin{enumerate}
-\item \textbf{Modality extraction.} The visual anchor is selected and encoded into $e_v$. The
-peripheral embeddings $e_{seq}$, $e_{cap}$, $e_{ekb}$, and $e_{ctx}$ are
-computed for every modality available for this event; any modality that
-cannot be computed for a given event (e.g., a missing timestamp) is marked
-unavailable in the modality-availability mask $a$ rather than imputed with
-a default value.
+\item \textbf{Modality extraction.} The visual anchor is selected and encoded into $e_v$. The peripheral embeddings $e_{seq}$, $e_{cap}$, and $e_{ctx}$ are computed for every modality available for this event; any modality that cannot be computed for a given event (e.g., a missing timestamp) is marked unavailable in the modality-availability mask $a$ rather than imputed with a default value.
+
 \item \textbf{Level 0 -- presence.} Every available modality embedding is
 scored against the two Level-0 EOG nodes, empty and
 animal. The gate combines these per-modality scores into a fused
@@ -283,8 +267,8 @@ Task-specific zero-shot models (CLIP, BLIP, GPT, Gemini) & Single modality, sing
 WildMatch-VLM-Fusion & Visual + generated description, fixed $\alpha$ & Reuse of Chapter~\ref{cap:experiment_02} results; isolates the benefit of a \emph{learned} gate over a fixed weight, on the species-classification task alone. \\
 WildBind -- visual only & $e_v$ & Lower bound relying solely on the visual anchor, with no peripheral modality contributing to the fused score. \\
 WildBind -- visual + burst & $e_v, e_{seq}$ & Isolates the contribution of burst-level temporal context over the single-frame anchor. \\
-WildBind -- visual + context & $e_v, e_{ekb}, e_{ctx}$ & Isolates the contribution of ecological-knowledge and spatiotemporal-metadata evidence, without generated captions. \\
-WildBind -- full & $e_v, e_{seq}, e_{cap}, e_{ekb}, e_{ctx}$ & Main proposed configuration, combining all five evidence sources through the learned gate. \\
+WildBind -- visual + context & $e_v, e_{ctx}$ & Isolates the contribution of spatiotemporal-metadata evidence, without burst context or generated captions. \\
+WildBind -- full & $e_v, e_{seq}, e_{cap}, e_{ctx}$ & Main proposed configuration, combining all four evidence sources through the learned gate. \\
 WildBind -- fixed-weight gate & Same as full, $w$ fixed instead of learned & Ablation isolating the contribution of the learned gate itself. \\
 Supervised instruction-tuned reference & Full fine-tuning of an open VLM (e.g., Qwen2.5-VL or LLaVA) in the spirit of CameraTrap-Instruct & Upper-bound reference quantifying the accuracy/supervision-cost trade-off relative to a fully supervised, non-zero-shot unified model. \\
 \bottomrule
@@ -297,7 +281,7 @@ Consistent with Chapters~\ref{cap:experiment_01} and~\ref{cap:experiment_02}, th
 
 \begin{itemize}
 \item \textbf{Chain accuracy}: the proportion of events for which presence, species, and (when applicable) behavior are \emph{all} predicted correctly, quantifying the cost of hierarchical error propagation that a task-unified model uniquely exposes.
-\item \textbf{Missing-modality robustness curve}: accuracy as a function of the number of available peripheral modalities ($|a|_1 = 0, 1, \dots, 4$), analogous to the coverage analysis reported for FunBind \citep{boadu2025funbind}, quantifying graceful degradation.
+\item \textbf{Missing-modality robustness curve}: accuracy as a function of the number of available peripheral modalities ($|a|_1 = 0, 1, \dots, 3$), analogous to the coverage analysis reported for FunBind \citep{boadu2025funbind}, quantifying graceful degradation.
 \item \textbf{Cross-domain generalization gap}: the accuracy difference between the in-distribution test partitions and the held-out dataset, isolating genuine zero-shot transfer from in-distribution fusion gains.
 \end{itemize}
 
