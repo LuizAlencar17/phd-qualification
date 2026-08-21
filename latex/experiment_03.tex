@@ -2,6 +2,7 @@
 
 The previous two chapters established two complementary but partial findings. Chapter~\ref{cap:experiment_01} showed that pre-trained multimodal models can support empty-image filtering, species classification, and behavior identification, but that no single model, supervision regime, or input context is uniformly superior across the three tasks: each task was evaluated with its own prompts, its own candidate label set, and its own scoring pipeline. Chapter~\ref{cap:experiment_02} showed that explicitly combining two complementary zero-shot signals---CLIP-based visual similarity and language-model-generated textual similarity---can improve species classification over either signal alone, but the fusion mechanism was a single global weight ($\alpha=0.7$) tuned by hand, applied to exactly two evidence sources, and restricted to one task.
 
+
 This chapter proposes and specifies WildBind, a unified multimodal binding architecture intended to close the gap between these two findings. Rather than treating empty-image filtering, species classification, and behavior identification as three independently engineered pipelines, WildBind represents all three as retrieval problems over a single shared Ecological Ontology Graph embedded in a common latent space. Rather than combining two evidence sources with a fixed linear weight, WildBind learns a compact, uncertainty-aware gating function that adaptively weighs an arbitrary number of visual, textual, temporal, and sequence-level evidence sources, and that degrades gracefully when any of them is unavailable. The remainder of this chapter motivates the design, specifies the architecture and training procedure, and details the planned experimental evaluation, including datasets, baselines, metrics, and statistical tests.
 
 \section{Introduction}
@@ -121,17 +122,14 @@ The central mechanism used to align the heterogeneous evidence sources in WildBi
 For a given event $i$, the visual embedding $e_v^i$ and the corresponding
 modality embedding $e_m^i$ form a positive pair. In contrast, modality
 embeddings associated with other events in the same minibatch form negative
-pairs. The contrastive objective therefore encourages representations
+pairs (Figure ~\ref{fig:contrastive_binding}). The contrastive objective therefore encourages representations
 associated with the same event to become close in the shared latent space,
 while separating representations originating from different events.
-Figure~\ref{fig:contrastive_binding} illustrates the construction of positive
-and negative pairs, the resulting similarity matrix, and the aggregation of
-the modality-specific contrastive losses.
 
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6.5in]{images/contrastive_binding_infonce.png}
-\caption{Illustration of the contrastive binding objective used in WildBind. For each camera-trap event $i$, the visual anchor embedding $e_v^i$ is paired with the embedding $e_m^i$ of the corresponding modality, forming a positive pair. Embeddings from different events in the minibatch form negative pairs. The temperature-scaled cosine similarities define the similarity matrix used by the InfoNCE objective. For each modality $m$, the contrastive loss $\mathcal{L}_{v,m}$ encourages the corresponding visual--modality pair to have high similarity while separating mismatched pairs. The individual modality losses are subsequently aggregated into the multimodal binding loss $\mathcal{L}_{bind}$.}
+\caption{Contrastive multimodal binding with InfoNCE. Matching visual and modality embeddings from the same camera-trap event are pulled together, while embeddings from different events are pushed apart. The contrastive objective is applied across modalities to learn a shared latent representation.}
 \label{fig:contrastive_binding}
 \end{figure*}
 

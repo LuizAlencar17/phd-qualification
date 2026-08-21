@@ -121,6 +121,45 @@ Multimodal models extend this idea by replacing or complementing image-based pro
 
 In biodiversity monitoring, these paradigms provide a way to address the cold-start problem when studying new regions or rare species. When a species has few or no labeled images, multimodal zero-shot approaches allow researchers to define the category using textual descriptions. This approach connects ecological knowledge—where species are described through morphological and behavioral traits—with computer vision systems, enabling automated recognition even when visual training data are limited.
 
+\section{Embeddings and Representation Learning}
+\label{sec:embeddings}
+
+The zero-shot and few-shot paradigms discussed above, together with the multimodal architectures reviewed later in this chapter, rely on a common underlying mechanism: the representation of heterogeneous inputs -- words, sentences, images, and, in the methodology developed later in this thesis, entire camera-trap events -- as points in a shared, continuous vector space. This section formalizes the notion of an embedding, reviews how such spaces are learned for text and vision, and introduces the contrastive and retrieval-based principles that the multimodal models discussed in this chapter, and the fusion architecture proposed in Chapter~\ref{cap:experiment_03}, build upon.
+
+\subsection{Dense Vector Representations and the Embedding Space}
+
+An embedding is a learned mapping from a discrete or high-dimensional input -- a word, a sentence, an image, or a video -- to a dense vector in a continuous space $\mathbbm{R}^d$, typically of much lower dimensionality than the original input, such that geometric relationships in this space (distance, angle) reflect semantic or perceptual relationships between the corresponding inputs. This contrasts with symbolic representations such as one-hot encoding, in which every category is mutually orthogonal and equidistant, and no notion of similarity can be recovered from the representation itself. The idea that meaning can be encoded in the geometry of a learned vector space was popularized for text by word2vec \citep{mikolov2013efficient} and by co-occurrence-based alternatives such as GloVe \citep{pennington2014glove}, both of which showed that vectors trained to predict word context from large unlabeled corpora capture syntactic and semantic regularities, to the point that simple vector arithmetic can recover analogical relationships between words.
+
+The relationship between two embeddings is most commonly quantified with cosine similarity,
+
+\begin{equation}
+\text{sim}(u, v) = \cos(u, v) = \frac{u \cdot v}{\lVert u \rVert_2 \, \lVert v \rVert_2},
+\label{eq:cosine_similarity}
+\end{equation}
+
+which measures the angle between two vectors independently of their magnitude and is the similarity function used throughout the multimodal models discussed in this chapter, as well as in the retrieval and fusion mechanisms proposed later in this thesis.
+
+\subsection{From Static to Contextual and Sentence-Level Embeddings}
+
+Early embedding models such as word2vec and GloVe assign a single, fixed vector to each word type, regardless of context; consequently, they cannot distinguish between different senses of the same word. The introduction of the Transformer architecture \citep{vaswani2017attention} enabled contextual embeddings, in which the representation of a token is computed as a function of the entire input sequence through self-attention, so that the same word receives different embeddings in different contexts. BERT \citep{devlin2019bert} is the paradigmatic example of this shift, using masked-language-model pretraining to produce deep bidirectional contextual representations that transfer well to a wide range of downstream tasks.
+
+Many applications, including the ones considered in this thesis, require a single fixed-size embedding for an entire sentence or short text passage -- such as a species description or a generated image caption -- rather than one embedding per token. Naively averaging token-level BERT embeddings for this purpose produces representations known to be poorly suited for similarity comparison. Sentence-BERT \citep{reimers2019sentence} addresses this limitation by fine-tuning a Transformer encoder with a siamese or triplet architecture directly optimized so that cosine similarity between sentence embeddings reflects semantic similarity, establishing the modeling pattern later followed by efficient encoder-only architectures such as ModernBERT \citep{warner2024modernbert}, adopted as the text encoder in Chapter~\ref{cap:experiment_03}.
+
+\subsection{Contrastive Representation Learning and the InfoNCE Objective}
+
+Contrastive representation learning trains an encoder, or a pair of encoders, so that representations of related (\emph{positive}) pairs are pulled together in embedding space while representations of unrelated (\emph{negative}) pairs are pushed apart, without requiring explicit class labels. The InfoNCE loss, introduced in the context of Contrastive Predictive Coding \citep{oord2018representation} and later popularized for visual representation learning by SimCLR \citep{chen2020simple}, formalizes this idea as an instance-discrimination problem. For a positive pair of embeddings $z_i, z_j$ among $2N$ representations in a training batch, and a temperature hyperparameter $\tau$, the loss is defined as
+
+\begin{equation}
+\mathcal{L}_{i,j} = -\log \frac{\exp\left(\mathrm{sim}(z_i, z_j)/\tau\right)}{\displaystyle\sum_{k=1}^{2N} \mathbbm{1}_{[k \neq i]} \, \exp\left(\mathrm{sim}(z_i, z_k)/\tau\right)},
+\label{eq:infonce_general}
+\end{equation}
+
+where the indicator function $\mathbbm{1}_{[k \neq i]}$ excludes the anchor from its own denominator and $\tau$ controls how sharply the loss penalizes hard negatives. Minimizing Equation~\ref{eq:infonce_general} over a batch increases the similarity of matched pairs relative to all other in-batch samples, which act as implicit negatives. Multiple variants of this objective exist, differing primarily in how the negative set is constructed and whether the loss is applied symmetrically across both modalities; the image--text objective used by CLIP, discussed later in this chapter, and the per-modality binding losses proposed in Chapter~\ref{cap:experiment_03} (Equation~\ref{eq:infonce}) both follow this same general contrastive pattern, adapted to bind a visual anchor to one or more complementary modalities.
+
+\subsection{Similarity-Based Retrieval in Embedding Spaces}
+
+Once heterogeneous inputs are mapped into a shared embedding space, many downstream tasks reduce to a nearest-neighbor search: given a query embedding, retrieve the candidate embedding, or embeddings, closest to it under a chosen similarity function. This retrieval-based view underlies zero-shot classification with CLIP, in which an image embedding is compared against a fixed set of class-description embeddings, and more generally underlies open-vocabulary recognition, in which the candidate set can be extended simply by embedding new textual descriptions, without retraining the encoder. At the scale of large embedding collections, exact nearest-neighbor search becomes computationally expensive, which has motivated approximate nearest-neighbor (ANN) methods and libraries such as FAISS \citep{johnson2019billion}, which trade a small amount of retrieval accuracy for substantial gains in query speed and memory efficiency through techniques such as product quantization and graph-based indexing. Framing classification, matching, and retrieval as instances of the same operation -- similarity search over a learned embedding space -- is a recurring pattern across the multimodal models reviewed in this chapter, and forms the basis of the hierarchical retrieval mechanism proposed in Chapter~\ref{cap:experiment_03}.
+
 \section{Multimodal Large Language Models}
 \subsection{CLIP}
 
