@@ -91,15 +91,6 @@ Species classification and behavior identification are reformulated as a single 
 \item \textbf{Level 1 -- Behavior.} One node per behavior class (moving, eating, resting, extendable to additional classes), represented by newly authored textual descriptions constituting a Behavior Knowledge Base (BKB), conditioned on the parent species node.
 \end{itemize}
 
-Figure~\ref{fig:eog_hierarchy} illustrates this hierarchy with a concrete example, showing how the decision made at one level conditions the candidate set considered at the level below.
-
-\begin{figure*}[!ht]
-\centering
-\includegraphics[width=6in]{images/eog_hierarchy_diagram.png}
-\caption{The two-level Ecological Ontology Graph, illustrated with an example path, queried only for events already flagged as containing an animal by the pretrained detector. Level 0 is the species candidate set; Level 1 conditions the behavior candidate set on the predicted species. The highlighted path (lion $\rightarrow$ eating) illustrates one hierarchical prediction $(\hat{y}_0, \hat{y}_1)$.}
-\label{fig:eog_hierarchy}
-\end{figure*}
-
 Every EOG node $c$ at level $\ell$ is embedded through the same frozen text encoder and a level-specific trainable projection head into an embedding $e_c$ in the shared latent space. This is the mechanism that unifies the three tasks: instead of three separate classifiers, WildBind performs the same operation---similarity scoring against a set of candidate node embeddings---at each level of one hierarchy, with the candidate set at each level conditioned on the decision made at the level above.
 
 \subsection{Contrastive Binding and Self-Supervised Pretraining}
