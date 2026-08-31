@@ -18,19 +18,19 @@ A camera trap deployment usually produces large collections of images or short i
 \centering
 \begin{minipage}[b]{0.32\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_example.jpg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_example.jpg}
   \captionof{figure}{Serengeti camera trap dataset example.}
   \label{fig:serengeti_example}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.32\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/caltech_example.jpg}
+  \includegraphics[width=\linewidth]{images/fundamentals/caltech_example.jpg}
   \captionof{figure}{Caltech camera trap dataset example.}
   \label{fig:caltech_example}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.32\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/wcs_example.jpg}
+  \includegraphics[width=\linewidth]{images/fundamentals/wcs_example.jpg}
   \captionof{figure}{WCS camera trap dataset example.}
   \label{fig:wcs_example}
 \end{minipage}
@@ -43,7 +43,7 @@ A typical camera trap workflow starts with data acquisition in the field, follow
 
 \begin{figure*}[!ht]
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_sequence_example.png}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_sequence_example.png}
   \captionof{figure}{Serengeti camera trap sequence example.}
   \label{fig:serengeti_sequence_example}
 \end{figure*}
@@ -62,22 +62,23 @@ Species classification aims to assign an animal image to one of a predefined set
 
 \begin{figure*}[!ht]
 
+  
 \centering
 \begin{minipage}[b]{0.25\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_zebra_1.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_zebra_1.jpeg}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.25\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_zebra_2.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_zebra_2.jpeg}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.25\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_zebra_3.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_zebra_3.jpeg}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.25\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_zebra_4.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_zebra_4.jpeg}
 \end{minipage}
   \captionof{figure}{Examples of domain shift across camera locations. Images of the same species (zebra) captured by different camera traps in the Snapshot Serengeti dataset exhibit substantial variations in illumination, background, vegetation, viewpoint, and imaging conditions, despite sharing the same class label.}
   \label{fig:domain_shift_across_camera}
@@ -89,15 +90,15 @@ Behavior identification aims to infer the activity performed by the animal, such
 \centering
 \begin{minipage}[b]{0.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_moving.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_moving.jpeg}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_eating.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_eating.jpeg}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{images/serengeti_resting.jpeg}
+  \includegraphics[width=\linewidth]{images/fundamentals/serengeti_resting.jpeg}
 \end{minipage}\hfill
   \captionof{figure}{Examples of animal behaviors in camera trap images from the Snapshot Serengeti dataset. Representative images illustrating three common behaviors annotated in the dataset: moving, eating, and resting.}
   \label{fig:moving_eating_resting}
@@ -169,7 +170,7 @@ Technically, CLIP consists of two neural networks trained jointly: an image enco
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/clip.png}
+\includegraphics[width=6in]{images/fundamentals/clip.png}
 \caption{CLIP architecture}
 \legend{Source: \citet{radford2021learning}.}
 \label{fig:clip_architecture}
@@ -189,7 +190,7 @@ BLIP is based on a Multimodal Mixture of Encoder–Decoder (MED) architecture. T
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/blip.png}
+\includegraphics[width=6in]{images/fundamentals/blip.png}
 \caption{BLIP architecture}
 \legend{Source: \citet{li2022blip}.}
 \label{fig:blip_architecture}
@@ -213,7 +214,7 @@ Experimental evaluations show that modern GPT models achieve strong performance 
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/gpt.png}
+\includegraphics[width=6in]{images/fundamentals/gpt.png}
 \caption{Performance of GPT-4 across multiple academic benchmarks as reported by the authors.}
 \legend{Source: \citet{achiam2023gpt}.}
 \label{fig:gpt_results}
@@ -227,7 +228,7 @@ The Gemini architecture is based on an enhanced decoder-only Transformer with im
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/gemini.png}
+\includegraphics[width=6in]{images/fundamentals/gemini.png}
 \caption{Illustration of the multimodal reasoning capabilities of Gemini models.}
 \legend{Source: \citet{team2023gemini}.}
 \label{fig:gemini_architecture}

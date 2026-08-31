@@ -43,14 +43,14 @@ WildBind is organized as a two-stage architecture that integrates multimodal eve
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/wildbind_pipeline_1.png}
+\includegraphics[width=6in]{images/experiment_03/wildbind_pipeline_1.png}
 \caption{Overview of the WildBind architecture. At the event level, a pretrained detector selects an anchor frame and crop and determines whether the event contains an animal, while four complementary modalities---visual anchor ($e_v$), burst context ($e_{seq}$), generated description ($e_{cap}$), and spatiotemporal context ($e_{ctx}$)---are projected into a shared latent space. The visual anchor is contrastively bound to the peripheral modalities through an InfoNCE objective.}
 \label{fig:wildbind_pipeline_1}
 \end{figure*}
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6in]{images/wildbind_pipeline_2.png}
+\includegraphics[width=6in]{images/experiment_03/wildbind_pipeline_2.png}
 \caption{Overview of the WildBind architecture. At inference time, events already flagged as containing an animal by the pretrained detector are processed by an uncertainty-aware gate that fuses modality-specific similarity scores hierarchically over the Ecological Ontology Graph (EOG): species, then behavior. The retrieval--fusion procedure is repeated at each level, with the behavior candidate set restricted to $B(\hat{y}_0)$, the behaviors associated with the predicted species; events flagged as empty by the detector are not processed further.}
 \label{fig:wildbind_pipeline_2}
 \end{figure*}
@@ -107,7 +107,7 @@ while separating representations originating from different events.
 
 \begin{figure*}[!ht]
 \centering
-\includegraphics[width=6.5in]{images/contrastive_binding_infonce.png}
+\includegraphics[width=6.5in]{images/experiment_03/contrastive_binding_infonce.png}
 \caption{Contrastive multimodal binding with InfoNCE. Matching visual and modality embeddings from the same camera-trap event are pulled together, while embeddings from different events are pushed apart. The contrastive objective is applied across modalities to learn a shared latent representation.}
 \label{fig:contrastive_binding}
 \end{figure*}
