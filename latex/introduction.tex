@@ -16,7 +16,7 @@ Pre-trained multimodal models, especially vision-language models, offer a promis
 
 Therefore, the gap addressed in this thesis is not only the lack of automation for camera trap data, but the limited understanding of how pre-trained multimodal models behave when applied to ecological vision tasks under realistic low-supervision constraints. Existing supervised systems can be effective when sufficient annotated data are available, but their dependence on target-domain labels limits transfer to new deployments. At the same time, vision-language models offer zero-shot and few-shot capabilities, but their reliability across camera trap tasks, datasets, image conditions, and fusion strategies remains insufficiently characterized. This thesis addresses this gap by evaluating multimodal models across core workflow tasks and by investigating whether visual-textual fusion can improve zero-shot species classification.
 
-\section{Challenges for camera trap Data Analysis}
+\section{Challenges for Camera Trap Data Analysis}
 
 Extracting reliable information from camera trap images is difficult because the visual conditions are often uncontrolled. Animals may appear far from the camera, partially occluded, camouflaged, blurred by motion, or captured under poor illumination~\citep{villa2017towards, norouzzadeh2018automatically, beery2018recognition, gomez2016animal}. In some cases, only part of the animal is visible, or the image contains cluttered vegetation and background structures that make visual interpretation difficult even for specialists.
 
@@ -26,7 +26,7 @@ Domain generalization is another central challenge. Because camera traps are sta
 
 These challenges directly motivate the low-supervision perspective adopted in this thesis. Zero-shot and few-shot strategies are relevant because they test whether pre-trained models can transfer general visual and semantic knowledge to camera trap tasks with limited adaptation. Multimodal models are particularly relevant because textual descriptions, class names, prompts, and species knowledge can provide semantic information when visual training examples are scarce.
 
-\section{Computer Vision Tasks in Automated camera trap Workflows}
+\section{Computer Vision Tasks in Automated Camera Trap Workflows}
 
 Before camera trap data can support ecological analyses, raw images must be processed to extract information required by the study. This information may include whether an animal is present, which species appears in the image, how many individuals are present, and which behavior is being performed~\citep{norouzzadeh2018automatically}. These processing steps can be formulated as computer-vision tasks and organized as part of a camera trap workflow.
 

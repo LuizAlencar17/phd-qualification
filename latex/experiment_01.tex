@@ -135,7 +135,7 @@ Table~\ref{tab:overall_results} summarizes the results obtained for the three in
 Task & Model & Precision & Recall & F1-score & Accuracy & CI95 \\
 \hline
 Animal & BLIP-FewShot & 0.9100 & 0.9100 & 0.9100 & 0.9100 & [0.904, 0.915] \\
-Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \\
+Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \\ 
 Animal & Gemini & 0.5695 & 0.5551 & 0.5536 & 0.8322 & [0.825, 0.839] \\
 Animal & CLIP & 0.8150 & 0.7983 & 0.7959 & 0.7987 & [0.791, 0.806] \\
 Animal & CLIP-FewShot & 0.7594 & 0.7589 & 0.7587 & 0.7588 & [0.750, 0.767] \\
@@ -205,13 +205,13 @@ These values show different trade-offs between empty and non-empty detection. CL
 
 \subsection{Species Classification}
 
-In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. The article therefore identifies a strong dependence of BLIP on few-shot adaptation for this task (Figure ~\ref{fig:experiment_1-example_species}).
+In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. These results indicate a strong dependence of BLIP on few-shot adaptation for this task (Figure ~\ref{fig:experiment_1-example_species}).
 
 CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score.
 
 Among the zero-shot models, Gemini achieved the highest accuracy, 0.7589, followed by GPT with 0.6868. GPT obtained slightly higher precision than Gemini, but lower recall, F1-score, and accuracy.
 
-The article also reports species-wise recall values, reproduced in Table~\ref{tab:species_recall}.
+The species-wise recall values are reported in Table~\ref{tab:species_recall}.
 
 \begin{table}[htbp]
 \centering
@@ -238,7 +238,7 @@ The class-wise analysis indicates that giraffe, hyena, and elephant were among t
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/experiment_01/experiment_1-example_species.png}
-\caption{Examples of correctly species identification: (a) Only CLIP-FewShot correctly identified a gazelle; (b) Only GPT correctly identified a gazelle; (c) Only BLIP-FewShot correctly identified a lion (the bounding box in the image is just to help see where the animal is, due to the conditions of some images).}
+\caption{Examples of correct species identification: (a) Only CLIP-FewShot correctly identified a gazelle; (b) Only GPT correctly identified a gazelle; (c) Only BLIP-FewShot correctly identified a lion (the bounding box in the image is just to help see where the animal is, due to the conditions of some images).}
 \label{fig:experiment_1-example_species}
 \end{figure*}
 \subsection{Behavior Identification}

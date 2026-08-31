@@ -390,8 +390,8 @@
   \def\ppgcc@mscdocprop{Proposta de disserta\c{c}\~{a}o}
   \def\ppgcc@phddoc{Tese}
   \def\ppgcc@phddocproj{Projeto de tese}
-  \def\ppgcc@advisor{Orientador}
-  \def\ppgcc@coadvisor{Coorientador}
+  \def\ppgcc@advisor{Orientadora}
+  \def\ppgcc@coadvisor{Coorientadora}
   \def\ppgcc@docdescription{%
     \@documenttype{} apresentad\ppgcc@doctype@gender{} ao Programa de
     P\'{o}s\discretionary{-}{-}{-}Gradua\c{c}\~{a}o em \@deflang@course{} do
@@ -802,7 +802,7 @@ UNIVERSIDADE FEDERAL DO AMAZONAS \\ INSTITUTO DE COMPUTA\c{C}\~{A}O \\ PROGRAMA 
         --- \@university
         \\[\ppgcc@fc@smallsep]
       & \hspace*{\ppgcc@fc@parindent}%
-        Orientador: \ppgcc@advisorname
+        Orientadora: \ppgcc@advisorname
         \\[\ppgcc@fc@bigsep]
       & \hspace*{\ppgcc@fc@parindent}%
         \ppgcc@indexkeys
