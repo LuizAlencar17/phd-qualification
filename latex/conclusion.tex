@@ -10,7 +10,7 @@ The first empirical study evaluated CLIP, BLIP, GPT-4o, and Gemini across three 
 
 The second empirical study investigated whether complementary visual and textual information could improve zero-shot species classification. WildMatch-VLM-Fusion combined CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species-level textual knowledge. The method achieved the highest accuracy in four of six evaluated dataset and image configurations and obtained an average improvement of 2.18 percentage points over the reference baseline. However, the statistical analysis did not establish significant superiority over the Baseline or standalone CLIP. Moreover, the gains were class-dependent and the fusion mechanism relied on a manually selected fixed weight, $\alpha=0.7$, between exactly two evidence sources. Thus, the second study provides evidence that multimodal fusion can be useful, but also exposes limitations in the current formulation of fusion.
 
-This motivates the third contribution of the thesis: \textit{WildBind}, a unified multimodal binding architecture for joint zero-shot camera trap understanding. WildBind reformulates species classification and behavior identification as hierarchical retrieval problems over a shared \textit{Ecological Ontology Graph}, while delegating empty-image filtering to the confidence threshold of a pretrained detector. Instead of using a manually fixed combination of two signals, the proposed architecture learns to integrate an arbitrary number of visual, textual, temporal, and contextual evidence sources through an uncertainty-aware fusion gate. The architecture is designed to preserve low-supervision while providing a common retrieval-and-fusion mechanism for species classification and behavior identification, complemented by the pretrained detector for empty-image filtering, jointly covering the three investigated tasks.
+This motivates the third contribution of the thesis: \textit{WildBind}, a unified multimodal binding architecture for joint camera trap understanding. WildBind reformulates species classification and behavior identification as retrieval problems over a shared \textit{Ecological Ontology Graph}, while delegating empty-image filtering to the confidence threshold of a pretrained detector. Instead of using a manually fixed combination of two signals, the proposed architecture learns to integrate an arbitrary number of visual, textual, temporal, and contextual evidence sources through an uncertainty-aware fusion gate. The architecture is designed to preserve low-supervision while providing a common retrieval-and-fusion mechanism for species classification and behavior identification, complemented by the pretrained detector for empty-image filtering, jointly covering the three investigated tasks.
 
 The scientific contribution of the thesis is therefore not limited to demonstrating that existing multimodal models can be applied to camera trap data. Rather, the completed research is intended to progress from empirical characterization of these models, through evidence for multimodal complementarity, toward a unified learned mechanism for binding heterogeneous ecological evidence.
 
@@ -24,9 +24,9 @@ The contributions of the thesis are organized into two completed empirical contr
 
 \item \textbf{Zero-shot visual-textual fusion for species classification.} A training-free multimodal fusion strategy that combines CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species-level knowledge.
 
-\item \textbf{WildBind: unified multimodal binding for camera trap understanding.} A unified architecture that represents species classification and behavior identification as hierarchical retrieval over a shared Ecological Ontology Graph, complemented by a pretrained detector that resolves empty-image filtering, and that integrates multiple visual, textual, temporal, and contextual evidence sources through a learned, uncertainty-aware fusion mechanism.
+\item \textbf{WildBind: unified multimodal binding for camera trap understanding.} A unified architecture that represents species classification and behavior identification as retrieval over a shared Ecological Ontology Graph, complemented by a pretrained detector that resolves empty-image filtering, and that integrates multiple visual, textual, temporal, and contextual evidence sources through a learned, uncertainty-aware fusion mechanism.
 
-\item \textbf{Empirical validation of unified multimodal binding.} The remaining experimental contribution will determine whether the proposed learned binding mechanism can improve the robustness and generality of zero-shot camera trap understanding compared with standalone multimodal models and fixed-fusion approaches.
+\item \textbf{Empirical validation of unified multimodal binding.} The remaining experimental contribution will determine whether the proposed learned binding mechanism can improve the robustness and generality of camera trap understanding under low supervision compared with standalone multimodal models and fixed-fusion approaches.
 
 \end{itemize}
 
@@ -34,7 +34,7 @@ The contributions of the thesis are organized into two completed empirical contr
 
 The thesis has completed the two empirical studies that establish its initial scientific contributions. The main contribution that remains to be completed is the empirical development and validation of WildBind. The architecture, training procedure, Ecological Ontology Graph, fusion mechanism, and evaluation protocol have already been specified in the proposed third study. However, empirical results are not yet available, and therefore the claims concerning the effectiveness of WildBind remain hypotheses to be tested rather than demonstrated results.
 
-The remaining research is consequently centered on determining whether the proposed unified binding mechanism can translate the findings of the first two studies into a general method for joint zero-shot camera trap understanding.
+The remaining research is consequently centered on determining whether the proposed unified binding mechanism can translate the findings of the first two studies into a general method for joint camera trap understanding under low supervision.
 
 \section{Next Steps}\label{sec:next_steps}
 
@@ -92,7 +92,7 @@ Development and implementation of the WildBind architecture, including the Ecolo
 
 Months 6--11
 &
-Training and experimental validation of the WildBind pipeline across empty-image filtering, species classification, and behavior identification, under the proposed low-supervision and zero-shot evaluation settings. \\
+Training and experimental validation of the WildBind pipeline across empty-image filtering, species classification, and behavior identification, under the proposed low-supervision evaluation settings. \\
 
 Months 12--15
 &
