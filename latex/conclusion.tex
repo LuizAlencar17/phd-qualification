@@ -1,6 +1,6 @@
 \chapter{Project Proceedings}\label{cap:conclusion}
 
-This chapter summarizes the scientific progress achieved so far and defines the remaining research required to complete the doctoral thesis. The thesis investigates the conditions under which pre-trained multimodal models can support the automation of camera trap workflows for biodiversity monitoring under low-supervision and zero-shot settings. The research has progressed through two completed empirical studies and a third, more integrative contribution that remains to be empirically developed and evaluated.
+This chapter summarizes the scientific progress achieved so far and defines the remaining research required to complete this work. The thesis investigates the conditions under which pre-trained multimodal models can support the automation of camera trap workflows for biodiversity monitoring under low-supervision and zero-shot settings. The research has progressed through two completed empirical studies and a third, more integrative contribution that remains to be developed and evaluated.
 
 \section{Conclusion}\label{sec:project_conclusion}
 
@@ -10,11 +10,9 @@ The first empirical study evaluated CLIP, BLIP, GPT-4o, and Gemini across three 
 
 The second empirical study investigated whether complementary visual and textual information could improve zero-shot species classification. WildMatch-VLM-Fusion combined CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species-level textual knowledge. The method achieved the highest accuracy in four of six evaluated dataset and image configurations and obtained an average improvement of 2.18 percentage points over the reference baseline. However, the statistical analysis did not establish significant superiority over the Baseline or standalone CLIP. Moreover, the gains were class-dependent and the fusion mechanism relied on a manually selected fixed weight, $\alpha=0.7$, between exactly two evidence sources. Thus, the second study provides evidence that multimodal fusion can be useful, but also exposes limitations in the current formulation of fusion.
 
-Together, these studies establish the empirical foundation for the next contribution of the thesis. The first study shows that independent multimodal inference is heterogeneous across tasks and models, while the second shows that complementary evidence can partially reduce this variability but remains restricted to a single task and a fixed fusion rule. Consequently, the central remaining research problem is not simply to further optimize either of the previous experiments, but to develop a mechanism capable of learning how heterogeneous ecological evidence should be combined across the camera trap workflow.
+This motivates the third contribution of the thesis: \textit{WildBind}, a unified multimodal binding architecture for joint zero-shot camera trap understanding. WildBind reformulates species classification and behavior identification as hierarchical retrieval problems over a shared \textit{Ecological Ontology Graph}, while delegating empty-image filtering to the confidence threshold of a pretrained detector. Instead of using a manually fixed combination of two signals, the proposed architecture learns to integrate an arbitrary number of visual, textual, temporal, and contextual evidence sources through an uncertainty-aware fusion gate. The architecture is designed to preserve low-supervision while providing a common retrieval-and-fusion mechanism for species classification and behavior identification, complemented by the pretrained detector for empty-image filtering, jointly covering the three investigated tasks.
 
-This motivates the third contribution of the thesis: \textit{WildBind}, a unified multimodal binding architecture for joint zero-shot camera trap understanding. WildBind reformulates species classification and behavior identification as hierarchical retrieval problems over a shared \textit{Ecological Ontology Graph}, while delegating empty-image filtering to the confidence threshold of the same pretrained detector used to select the visual anchor. Instead of using a manually fixed combination of two signals, the proposed architecture learns to integrate an arbitrary number of visual, textual, temporal, and contextual evidence sources through an uncertainty-aware fusion gate. The architecture is designed to preserve the low-supervision character of the thesis while providing a common retrieval-and-fusion mechanism for species classification and behavior identification, complemented by the pretrained detector for empty-image filtering, jointly covering the three investigated tasks.
-
-The scientific contribution of the thesis is therefore not limited to demonstrating that existing multimodal models can be applied to camera trap data. Rather, the completed research is intended to progress from empirical characterization of these models, through evidence for multimodal complementarity, toward a unified learned mechanism for binding heterogeneous ecological evidence. WildBind constitutes the main remaining methodological contribution required to complete this progression.
+The scientific contribution of the thesis is therefore not limited to demonstrating that existing multimodal models can be applied to camera trap data. Rather, the completed research is intended to progress from empirical characterization of these models, through evidence for multimodal complementarity, toward a unified learned mechanism for binding heterogeneous ecological evidence.
 
 \section{Contributions}\label{sec:contrib}
 
@@ -24,11 +22,7 @@ The contributions of the thesis are organized into two completed empirical contr
 
 \item \textbf{Multimodal evaluation of camera trap workflows.} An empirical evaluation of pre-trained multimodal models across empty-image filtering, species classification, and behavior identification, covering zero-shot and few-shot settings and, for behavior identification, single-image and sequence-based inference.
 
-\item \textbf{Characterization of multimodal model variability.} An analysis of how model architecture, supervision regime, temporal context, image characteristics, and ecological classes affect multimodal performance in camera trap workflows.
-
 \item \textbf{Zero-shot visual-textual fusion for species classification.} A training-free multimodal fusion strategy that combines CLIP-based visual similarity with textual similarity derived from language-model-generated image descriptions and species-level knowledge.
-
-\item \textbf{Empirical evidence on multimodal complementarity.} An evaluation showing that complementary visual and textual evidence can improve zero-shot species classification in several camera trap scenarios, while also demonstrating that the gains are class-dependent and not uniformly statistically significant.
 
 \item \textbf{WildBind: unified multimodal binding for camera trap understanding.} A unified architecture that represents species classification and behavior identification as hierarchical retrieval over a shared Ecological Ontology Graph, complemented by a pretrained detector that resolves empty-image filtering, and that integrates multiple visual, textual, temporal, and contextual evidence sources through a learned, uncertainty-aware fusion mechanism.
 
@@ -38,15 +32,13 @@ The contributions of the thesis are organized into two completed empirical contr
 
 \section{Current Status of the Project}\label{sec:current_status}
 
-The thesis has completed the two empirical studies that establish its initial scientific contributions. The first study characterized the capabilities and limitations of pre-trained multimodal models across multiple camera trap tasks, while the second investigated the complementarity of visual and textual evidence for zero-shot species classification. These studies provide the empirical basis for the formulation of the third contribution.
-
-The main contribution that remains to be completed is the empirical development and validation of WildBind. The architecture, training procedure, Ecological Ontology Graph, fusion mechanism, and evaluation protocol have already been specified in the proposed third study. However, empirical results are not yet available, and therefore the claims concerning the effectiveness of WildBind remain hypotheses to be tested rather than demonstrated results.
+The thesis has completed the two empirical studies that establish its initial scientific contributions. The main contribution that remains to be completed is the empirical development and validation of WildBind. The architecture, training procedure, Ecological Ontology Graph, fusion mechanism, and evaluation protocol have already been specified in the proposed third study. However, empirical results are not yet available, and therefore the claims concerning the effectiveness of WildBind remain hypotheses to be tested rather than demonstrated results.
 
 The remaining research is consequently centered on determining whether the proposed unified binding mechanism can translate the findings of the first two studies into a general method for joint zero-shot camera trap understanding.
 
 \section{Next Steps}\label{sec:next_steps}
 
-The remaining research activities are organized around the development and empirical validation of WildBind, followed by the final consolidation of the doctoral research.
+The remaining research activities are organized around the development and empirical validation of WildBind, followed by the final consolidation of the research.
 
 \begin{enumerate}
 
@@ -60,7 +52,7 @@ WildBind will be trained and evaluated to determine whether the proposed binding
 
 \item \textbf{Ablation, robustness, and comparative analysis.}
 
-The experimental analysis will investigate which components of WildBind are responsible for its performance. In particular, the study will examine the contribution of the shared ecological representation, the multimodal binding objective, the learned fusion gate, and the different evidence sources. The analysis will also assess robustness to missing modalities and variation in image context, species classes, and task conditions. These experiments are necessary to determine whether the proposed architecture provides advantages beyond the fixed two-branch fusion strategy investigated in Chapter~\ref{cap:experiment_02}.
+The experimental analysis will investigate which components of WildBind are responsible for its performance. In particular, the study will examine the contribution of the shared ecological representation, the multimodal binding objective, the learned fusion gate, and the different evidence sources. The analysis will also assess robustness to missing modalities and variation in image context, species classes, and task conditions.
 
 \item \textbf{Scientific consolidation and dissemination.}
 
@@ -70,7 +62,7 @@ The results of the WildBind experiments will be consolidated into the final meth
 
 \section{Schedule}\label{sec:sched}
 
-The proposed schedule for the remaining doctoral research is organized around the completion and validation of the third contribution, followed by dissemination and thesis completion. The activities are expressed at a macro level because the main objective of the post-qualification period is the development of the remaining scientific contribution.
+The proposed schedule for the remaining doctoral research is organized around the completion and validation of the third contribution, followed by dissemination and thesis completion, as summarized in Table ~\ref{tab:project_schedule}.
 
 \scriptsize
 \begin{longtable}{p{2.4cm} p{10.5cm}}
@@ -126,8 +118,8 @@ Thesis submission and defense. \\
 
 \section{Final Remarks}\label{sec:final_remarks_project}
 
-The thesis is not yet complete in terms of scientific contribution. The first two studies have established the empirical basis for the research by characterizing the capabilities and limitations of pre-trained multimodal models and by demonstrating that complementary visual and textual evidence can provide gains in zero-shot species classification. However, these studies also reveal limitations that motivate a more general solution: standalone models behave inconsistently across tasks, while the existing fusion strategy is restricted to one task, two evidence sources, and a manually selected fixed combination weight.
+The thesis is not yet complete in terms of scientific contribution. The first two studies have established the empirical basis for the research by characterizing the capabilities and limitations of pre-trained multimodal models and by demonstrating that complementary visual and textual evidence can provide gains in zero-shot species classification. However, these studies also reveal limitations that motivate a more general solution.
 
-The remaining stage of the research therefore focuses on WildBind as the principal methodological contribution of the thesis. The proposed architecture generalizes the multimodal fusion principle to species classification and behavior identification, while relying on the same pretrained detector used throughout the thesis for empty-image filtering, and replaces fixed fusion with a learned, uncertainty-aware mechanism capable of integrating heterogeneous evidence sources. The architecture has been specified, but its effectiveness remains to be established empirically.
+The remaining stage of the research therefore focuses on WildBind as the principal methodological contribution of the thesis. The proposed architecture generalizes the multimodal fusion principle to species classification and behavior identification, while relying on a pretrained detector for empty-image filtering. The architecture has been specified, but its effectiveness remains to be established empirically.
 
-The completion of this contribution is essential for answering the broader research question of the thesis: not only whether pre-trained multimodal models can be used in camera trap workflows, but whether their complementary information can be systematically bound into a unified, low-supervision mechanism capable of supporting multiple ecological vision tasks. The final thesis will therefore be completed only after the proposed method has been implemented, experimentally evaluated, critically analyzed, and incorporated into the overall scientific synthesis.
+The completion of this contribution is essential for answering the broader research question of the thesis: not only whether pre-trained multimodal models can be used in camera trap workflows, but whether their complementary information can be systematically bound into a unified, low-supervision mechanism capable of supporting multiple ecological vision tasks.

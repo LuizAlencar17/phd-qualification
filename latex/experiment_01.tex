@@ -1,10 +1,10 @@
 \chapter{Advancing Biodiversity Monitoring by Integrating Multimodal AI Models into Camera Trap Workflow}\label{cap:experiment_01}
 
-This chapter presents the first main contribution of the thesis, focused on evaluating the use of multimodal artificial intelligence models to support key stages of the camera-trap workflow in biodiversity monitoring. The study examines the application of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp to three tasks: empty-image filtering, species classification, and behavior identification. It describes the datasets, experimental protocols, evaluation metrics, and results, with emphasis on the comparison between zero-shot and few-shot settings and, for behavior analysis, between single-image and sequence-based inference. An initial version of this study was published in \citep{alencar2024zero}, while the complete version was published in \citep{alencar2026advancing}.
+This chapter presents the first main contribution of the thesis, focused on evaluating the use of multimodal artificial intelligence models to support key stages of the camera-trap workflow in biodiversity monitoring. The study examines the application of CLIP, BLIP, GPT-4o, and Gemini 2.0 flash-exp to three tasks: empty-image filtering, species classification, and behavior identification. It describes the datasets, experimental protocols, and results, with emphasis on the comparison between zero-shot and few-shot settings and, for behavior analysis, between single-image and sequence-based inference. An initial version of this study was published in \citep{alencar2024zero}, while the complete version was published in \citep{alencar2026advancing}.
 
 \section{Introduction}
 
-Biodiversity monitoring depends on the efficient analysis of large volumes of ecological data, and camera traps have become a central non-invasive instrument for this purpose. By continuously recording wildlife activity, camera traps support the study of species distribution, abundance, and behavior in natural environments \citep{tan2022animal,guo2024automatic}. Despite their utility, these datasets present substantial processing challenges, including strong class imbalance, a large proportion of empty images triggered by environmental factors, poor visual quality, and species labeling errors \citep{cunha2023bag,swanson2015snapshot,iannarilli2021evaluating,alencar2024zero}. Within the camera trap workflow, three tasks are particularly relevant: filtering empty images, classifying animal species, and identifying animal behavior.
+Biodiversity monitoring depends on the efficient analysis of large volumes of ecological data, and camera traps have become a central non-invasive instrument for this purpose. Despite their utility, these datasets present substantial processing challenges, including strong class imbalance, a large proportion of empty images triggered by environmental factors, poor visual quality, and species labeling errors \citep{cunha2023bag,swanson2015snapshot,iannarilli2021evaluating,alencar2024zero}. Within the camera trap workflow, three tasks are particularly relevant: filtering empty images, classifying animal species, and identifying animal behavior.
 
 Previous work has shown that supervised deep learning methods, especially CNNs, can achieve good performance in some camera trap tasks. However, these methods generally require extensive labeled datasets and may present limited robustness under challenging environmental conditions, such as dense vegetation and low illumination \citep{cunha2021filtering,binta2023animal,vecvanags2022ungulate,alencar2023context,velez2023evaluation}. In this context, multimodal large language models (MLLMs) offer an alternative based on the integration of visual and textual information, with the additional advantage of supporting zero-shot and few-shot learning settings \citep{li2022blip,radford2021learning,liu2024improved}.
 
@@ -32,7 +32,7 @@ The third task was \textit{behavior identification}, formulated as a three-class
 
 \subsection{Dataset Splits Used in the Experiments}
 
-Table~\ref{tab:dataset_sizes} presents the distribution of images per subset and task used in this empirical study.
+Table~\ref{tab:dataset_sizes} presents the distribution of images per subset and task used in this study.
 
 \begin{table}[htbp]
 \centering
@@ -134,14 +134,14 @@ Table~\ref{tab:overall_results} summarizes the results obtained for the three in
 \hline
 Task & Model & Precision & Recall & F1-score & Accuracy & CI95 \\
 \hline
-Animal & BLIP-FewShot & 0.9100 & 0.9100 & 0.9100 & 0.9100 & [0.904, 0.915] \\
+Animal & BLIP-FewShot & \textbf{0.9100} & \textbf{0.9100} & \textbf{0.9100} & \textbf{0.9100} & \textbf{[0.904, 0.915]} \\
 Animal & GPT & 0.8693 & 0.8562 & 0.8552 & 0.8566 & [0.850, 0.863] \\ 
 Animal & Gemini & 0.5695 & 0.5551 & 0.5536 & 0.8322 & [0.825, 0.839] \\
 Animal & CLIP & 0.8150 & 0.7983 & 0.7959 & 0.7987 & [0.791, 0.806] \\
 Animal & CLIP-FewShot & 0.7594 & 0.7589 & 0.7587 & 0.7588 & [0.750, 0.767] \\
 Animal & BLIP & 0.0137 & 0.0035 & 0.0055 & 0.0761 & [0.071, 0.081] \\
 \hline
-Behavior & BLIP-FewShot-Seq & 0.7640 & 0.7555 & 0.7567 & 0.7557 & [0.747, 0.764] \\
+Behavior & BLIP-FewShot-Seq & \textbf{0.7640} & \textbf{0.7555} & \textbf{0.7567} & \textbf{0.7557} & \textbf{[0.747, 0.764]} \\
 Behavior & BLIP-FewShot & 0.7041 & 0.7011 & 0.7011 & 0.7014 & [0.692, 0.710] \\
 Behavior & Gemini-Seq & 0.5002 & 0.4616 & 0.4336 & 0.6171 & [0.608, 0.627] \\
 Behavior & Gemini & 0.4533 & 0.4312 & 0.3940 & 0.5766 & [0.567, 0.586] \\
@@ -154,8 +154,8 @@ Behavior & CLIP & 0.3348 & 0.3430 & 0.3321 & 0.3425 & [0.333, 0.352] \\
 Behavior & BLIP-Seq & 0.0477 & 0.0290 & 0.0361 & 0.0879 & [0.083, 0.094] \\
 Behavior & BLIP & 0.0312 & 0.0002 & 0.0004 & 0.0011 & [0.001, 0.002] \\
 \hline
-Species & BLIP-FewShot & 0.7684 & 0.7532 & 0.7556 & 0.7524 & [0.744, 0.761] \\
-Species & Gemini & 0.6912 & 0.6837 & 0.6859 & 0.7589 & [0.754, 0.764] \\
+Species & BLIP-FewShot & \textbf{0.7684} & \textbf{0.7532} & \textbf{0.7556} & 0.7524 & [0.744, 0.761] \\
+Species & Gemini & 0.6912 & 0.6837 & 0.6859 & \textbf{0.7589} & \textbf{[0.754, 0.764]} \\
 Species & GPT & 0.7036 & 0.6190 & 0.6296 & 0.6868 & [0.678, 0.696] \\
 Species & CLIP & 0.5352 & 0.4580 & 0.4456 & 0.4558 & [0.446, 0.466] \\
 Species & CLIP-FewShot & 0.3359 & 0.3201 & 0.3174 & 0.3202 & [0.311, 0.329] \\
@@ -174,7 +174,7 @@ CLIP performed better than BLIP in zero-shot mode, with accuracy of 0.7987 and F
 
 Among the zero-shot models, GPT obtained the highest performance in this task, with accuracy of 0.8566, precision of 0.8693, recall of 0.8562, and F1-score of 0.8552. Gemini also produced valid results, but with lower values than GPT in this binary classification setting.
 
-Table~\ref{tab:filter_recall} presents the class-wise recall for the two categories involved in empty-image filtering.
+Table~\ref{tab:filter_recall} presents the class-wise recall for the two categories involved in empty-image filtering. These values show different trade-offs between empty and non-empty detection. CLIP in zero-shot mode favored the empty class, while Gemini favored the animal class. BLIP-FewShot presented the most balanced recall across the two classes.
 
 \begin{table}[htbp]
 \centering
@@ -194,8 +194,6 @@ GPT & 0.7635 & 0.9490 \\
 \end{tabular}
 \end{table}
 
-These values show different trade-offs between empty and non-empty detection. CLIP in zero-shot mode favored the empty class, while Gemini favored the animal class. BLIP-FewShot presented the most balanced recall across the two classes.
-
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/experiment_01/experiment_1-example_animal.png}
@@ -207,11 +205,9 @@ These values show different trade-offs between empty and non-empty detection. CL
 
 In species classification, BLIP again performed very poorly in zero-shot mode, with accuracy of 0.0006, recall of 0.0005, and F1-score of 0.0011. In contrast, BLIP-FewShot reached accuracy of 0.7524 and F1-score of 0.7556. These results indicate a strong dependence of BLIP on few-shot adaptation for this task (Figure ~\ref{fig:experiment_1-example_species}).
 
-CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score.
+CLIP showed moderate zero-shot performance, with accuracy of 0.4558 and F1-score of 0.4456. As in the filtering task, few-shot adaptation reduced its performance, with CLIP-FewShot dropping to 0.3202 accuracy and 0.3174 F1-score. Among the zero-shot models, Gemini achieved the highest accuracy, 0.7589, followed by GPT with 0.6868. GPT obtained slightly higher precision than Gemini, but lower recall, F1-score, and accuracy.
 
-Among the zero-shot models, Gemini achieved the highest accuracy, 0.7589, followed by GPT with 0.6868. GPT obtained slightly higher precision than Gemini, but lower recall, F1-score, and accuracy.
-
-The species-wise recall values are reported in Table~\ref{tab:species_recall}.
+The species-wise recall values are reported in Table~\ref{tab:species_recall}. This analysis indicates that giraffe, hyena, and elephant were among the easiest species for the evaluated models. BLIP-FewShot and Gemini both reached recall above 0.88 for giraffe, while GPT reached 0.9442 for hyena. The bird class showed strong contrast among models, with GPT reaching 0.9442 recall and CLIP remaining much lower.
 
 \begin{table}[htbp]
 \centering
@@ -233,8 +229,6 @@ GPT & 0.8368 & 0.5289 & 0.9442 & 0.7525 & 0.9442 & 0.7130 & 0.4991 & 0.7535 & 0.
 }
 \end{table}
 
-The class-wise analysis indicates that giraffe, hyena, and elephant were among the easiest species for the evaluated models. BLIP-FewShot and Gemini both reached recall above 0.88 for giraffe, while GPT reached 0.9442 for hyena. The bird class showed strong contrast among models, with GPT reaching 0.9442 recall and CLIP remaining much lower.
-
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/experiment_01/experiment_1-example_species.png}
@@ -251,7 +245,7 @@ CLIP in zero-shot mode obtained accuracy of 0.3425 and F1-score of 0.3321. Seque
 
 Gemini performed better than CLIP and BLIP in zero-shot mode for single-image behavior classification, with accuracy of 0.5766. The use of sequences further increased Gemini's performance to 0.6171. GPT behaved differently: while GPT achieved 0.4819 accuracy with single images, GPT-Seq dropped to 0.4058 when sequences were used. This result indicates that temporal context does not improve all models uniformly.
 
-The class-wise recall values for behavior identification are reproduced in Table~\ref{tab:behavior_recall}.
+The class-wise recall values for behavior identification are reproduced in Table~\ref{tab:behavior_recall}. These values indicate that the resting class was the most difficult behavior for most models. GPT achieved high recall for moving (0.9026) but much lower recall for resting (0.0731). Gemini and Gemini-Seq showed high recall for eating and moving, but also low recall for resting. BLIP-FewShot-Seq was the configuration with the most balanced recall across the three behaviors.
 
 \begin{table}[htbp]
 \centering
@@ -276,8 +270,6 @@ GPT-Seq & 0.0496 & 0.3265 & 0.8398 \\
 \hline
 \end{tabular}
 \end{table}
-
-The class-wise recall values indicate that the resting class was the most difficult behavior for most models. GPT achieved high recall for moving (0.9026) but much lower recall for resting (0.0731). Gemini and Gemini-Seq showed strong recall for eating and moving, but also low recall for resting. BLIP-FewShot-Seq was the configuration with the most balanced recall across the three behaviors.
 
 \begin{figure*}[!ht]
 \centering
@@ -306,4 +298,4 @@ This chapter investigated the integration of four multimodal models into three f
 
 The results show that few-shot adaptation was decisive for BLIP, which moved from very low zero-shot performance to the best result in empty-image filtering and to competitive results in species classification and behavior recognition. In species classification, Gemini achieved the highest zero-shot accuracy, while GPT was the strongest zero-shot model for filtering empty images. In behavior identification, the best overall configuration was BLIP-FewShot-Seq, indicating that sequence-based inputs can improve performance when combined with model adaptation.
 
-In the context of this thesis, this experiment contributes by showing that multimodal AI models can be applied to multiple stages of the camera-trap workflow within a unified evaluation framework. At the same time, the findings indicate that performance is highly conditional: it depends on the selected model, the task, the availability of limited supervision, the use of temporal information, and the species or behavior class being evaluated. This conditional behavior is especially relevant for species classification, where different models showed distinct strengths and weaknesses across classes. Therefore, rather than treating any individual multimodal model as a universally reliable solution, the next chapter investigates a complementary direction: whether visual and textual evidence can be explicitly combined to improve zero-shot species classification in camera-trap workflows.
+In the context of this thesis, these results contribute by showing that multimodal AI models can be applied to multiple stages of the camera-trap workflow within a unified evaluation framework. At the same time, the findings indicate that performance is highly conditional: it depends on the selected model, the task, the availability of limited supervision, the use of temporal information, and the species or behavior class being evaluated. This conditional behavior is especially relevant for species classification, where different models showed distinct strengths and weaknesses across classes. Therefore, rather than treating any individual multimodal model as a universally reliable solution, the next chapter investigates a complementary direction: whether visual and textual evidence can be explicitly combined to improve zero-shot species classification in camera-trap workflows.
