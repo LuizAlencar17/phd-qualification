@@ -109,8 +109,13 @@
 \addtolength{\textheight}{-\baselineskip}
 \checkandfixthelayout[fixed]
 
-\begin{document}
+% Remove a Folha de Rosto em Português (Página 2)
+\makeatletter
+\ppgcc@extraporttitlepagefalse
+\let\ppgcc@extraporttitlepagetrue\relax
+\makeatother
 
+\begin{document}
 
 \ppgccufmg{
 title={Enhancing Biodiversity Monitoring with Multimodal AI Models for Automated Camera Trap Workflows},
