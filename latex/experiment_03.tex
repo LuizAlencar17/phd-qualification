@@ -40,7 +40,7 @@ WildBind combines a multimodal event representation with retrieval over the Ecol
 \begin{figure*}[!ht]
 \centering
 \includegraphics[width=6in]{images/experiment_03/wildbind_pipeline_2.png}
-\caption{Overview of the WildBind inference stage. Events already flagged as containing an animal by the pretrained detector are processed by an uncertainty-aware gate that fuses modality-specific similarity scores over the Ecological Ontology Graph (EOG). The retrieval--fusion procedure is applied independently to the species nodes and to the behavior nodes, producing one species prediction and one behavior prediction per event; events flagged as empty by the detector are not processed further.}
+\caption{Overview of the WildBind inference stage. For an event flagged as containing an animal by the pretrained detector, each available modality embedding is compared with the EOG node embeddings by cosine similarity. Per-modality uncertainty statistics $u$ and the availability mask $a$ are fed to the uncertainty-aware gate $g_\theta$, which outputs modality weights through a masked softmax. The weights combine the normalized similarity scores into a fused score per candidate. This retrieval--fusion procedure is applied independently to the species nodes and to the behavior nodes with the same gate, yielding one species prediction and one behavior prediction per event. No parameter is updated at inference time.}
 \label{fig:wildbind_pipeline_2}
 \end{figure*}
 
@@ -164,12 +164,19 @@ Two sets of parameters are therefore learned, at different moments. The projecti
 
 \subsubsection{The Ecological Ontology Graph}\label{sec:eog}
 
-Species classification and behavior identification are reformulated as retrieval over a single Ecological Ontology Graph (EOG), which contains two sets of nodes embedded in the same latent space:
+Species classification and behavior identification are reformulated as retrieval over a single Ecological Ontology Graph (EOG), which contains two sets of nodes embedded in the same latent space (Figure ~\ref{fig:wildbind_eog}):
 
 \begin{itemize}
 \item \textbf{Species nodes} ($\mathcal{S}$). One node per candidate species, described by the visually oriented summaries of the Species Knowledge Base.
 \item \textbf{Behavior nodes} ($\mathcal{B}$). One node per behavior class (moving, eating, resting, extendable to additional classes), described by the textual descriptions of the Behavior Knowledge Base.
 \end{itemize}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=6in]{images/experiment_03/eog.png}
+\caption{The Ecological Ontology Graph (EOG). It comprises two independent sets of nodes, species nodes $\mathcal{S}$ and behavior nodes $\mathcal{B}$, each defined by a short textual description from the corresponding knowledge base. Descriptions are embedded by the frozen text encoder followed by the text projection head learned during contrastive pretraining, which places all nodes in the same latent space as the event modalities. No dependency is imposed between the two sets.}
+\label{fig:wildbind_eog}
+\end{figure*}
 
 No dependency is imposed between the two predictions: the candidate set for behavior identification is always the full set $\mathcal{B}$, regardless of the predicted species.
 
